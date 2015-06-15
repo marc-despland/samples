@@ -10,7 +10,7 @@ Everything has been detailed on my blog : [RaspberryPi in Bluez](http://absimili
 
 ## Build
 
-```gcc rfcomm_server.c -lbluetooth -o server
-gcc rfcomm_client.c -lbluetooth -o client```
+```gcc rfcomm_server.c -lbluetooth -o server```
+```gcc rfcomm_client.c -lbluetooth -o client```
 
 
