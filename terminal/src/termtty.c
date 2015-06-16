@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/select.h>
-#include <errno.h>
 #include <pty.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
