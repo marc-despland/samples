@@ -6,7 +6,9 @@ TcpServer is a simple implementation of a tcp server that manage text request.
 * include/tcpserver.h : the header
 * src/sample.c : an exemple using tcpserver to implement a simple server
 
-## Usage
+A simple telnet client could be use to test the sample server
+
+## How to use
 To implement a tcp server you just have to call the function listent_request
 
 ```int listen_request(unsigned int port, unsigned int pool_size, connection_handler handler); ```
