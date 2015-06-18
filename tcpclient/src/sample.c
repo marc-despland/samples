@@ -3,41 +3,77 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <arpa/inet.h>
-#include "tcpserver.h"
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <termios.h>
+#include "tcpclient.h"
 
-int handler(int clientfd, struct sockaddr_in client, socklen_t clientsize) {
+
+int handler(int serverfd, int input, int output) {
 	int go=1;
-	int n;
 	char buffer[100];
-	char address[INET6_ADDRSTRLEN];
+	fd_set readset;
+	int result;
+	int maxfd;
+	int count; 
+    
 	
-	inet_ntop(AF_INET, &(client.sin_addr), address, INET6_ADDRSTRLEN );
-	printf("Coonection established from %s\n",address);
-	send(clientfd,"You are connected to a test server\n", 35, 0);
-	send(clientfd,"Send quit to end the connection, the server will echo all other input\n\n", 71, 0);
+	if (serverfd>input) {
+		maxfd=serverfd+1;
+	} else {
+		maxfd=input+1;
+	}
 	while (go) {
-		n = recv(clientfd,buffer,sizeof(buffer)-2,0);
-		printf("Receive %d char\n",n);
-		if (n>0) {
-			buffer[n]=0;
-			buffer[strcspn(buffer, "\r\n")]=0;
-			if (strcmp(buffer, "quit")==0) {
-				printf("Receive quit\n");
-				go=0;
-			} else {
-				sprintf(buffer,"%s\r\n",buffer);
-				send(clientfd,buffer,strlen(buffer),0);
+		//initialize file descriptor for select
+		FD_ZERO(&readset);
+		FD_SET(serverfd, &readset);
+		FD_SET(input, &readset);
+		result = select(maxfd, &readset, NULL, NULL, NULL);
+		if (result > 0) {
+			if (FD_ISSET(serverfd, &readset)) {
+				//Child has write on its stdout
+				count = read(serverfd, buffer, sizeof(buffer)-1);
+				if (count > 0) {
+					buffer[count] = 0;
+					write(output, buffer, count);
+					//fflush(output);
+				} else {
+					go=0;
+				}
+			}
+			if (FD_ISSET(input, &readset)) {
+				//User has write some stuff
+				count = read(input, buffer, sizeof(buffer)-1);
+				if (count >= 0) {
+					buffer[count] = 0;
+					write(serverfd, buffer, count);
+				}
 			}
 		} else {
-			printf("Client has closed the connection\n");
 			go=0;
 		}
 	}
+	printf("End of client handler\n");
 	return 1;
 }
 
 int main() {
+	int ret;
+		// Backup intial TTY mode of STDIN
+	struct termios orgttystate;
+	tcgetattr(STDIN_FILENO, &orgttystate);
 
-	listen_request(6666,12,&handler);
-    return 1;
+	// Update STDIN mode to remove ECHO and ICANON to allow transmission of character without buffering and echo
+	struct termios ttystate;
+	tcgetattr(STDIN_FILENO, &ttystate);
+	ttystate.c_lflag &= ~ICANON;
+	ttystate.c_lflag &= ~ECHO;
+	ttystate.c_cc[VMIN] = 1;
+	tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+
+	ret=client_connect("192.168.1.23", 6666, &handler, STDIN_FILENO, STDOUT_FILENO);
+	
+	tcsetattr(STDIN_FILENO, TCSANOW, &orgttystate);
+	printf("Client close : %d %d\n",ret,tcperrno);
+	return 1;
 }
