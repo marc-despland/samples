@@ -6,23 +6,30 @@ TcpClient is a simple implementation of a tcp client that manage text request.
 * include/tcpclient.h : the header
 * src/sample.c : an exemple using tcpclient to implement a simple client
 
-A simple telnet client could be use to test the sample server
+The TcpClient is design to work with the sample of the TcpServer
 
 ## How to use
-To implement a tcp server you just have to call the function listent_request
+To implement a tcp server you just have to call the function client_connect
 
-```int listen_request(unsigned int port, unsigned int pool_size, connection_handler handler); ```
+```int client_connect(char * host, unsigned int port, client_handler handler, int input, int output) ```
 
-* port : the port to listen
-* pool_size : the number of simumtaneous connection that can manage the server
+* host : the server fqdn or ip adress
+* port : the port listened by the server
 * handler : the function that manage a connection
+* input : the input FD to send data to the server
+* output : the output FD to display data received from the server
 
-```int (*connection_handler)(int, struct sockaddr_in , socklen_t);```
+The function return 1 if everything is find, if a problem occurs the variable ``tcperrno`` is set with the value of ``errno`` and the function return :
+* ERRINVALIDHOSTNAME	  -1 : Can't retrieve the IP from the given FQDN
+* ERRCANTCREATESOCKET   -2 : Can't create the socket
+* ERRCANTCONNECTSOCKET  -3 : Can't connect the socket
 
-The function that implement the management of one client
-* int : the client socket fd
-* struct sockaddr_in : the structure return by ``accept`` that describe the client
-* socklen_t : the size return by ``accept``
+```typedef int (*client_handler)(int, int, int);```
+
+The function that implement the communication with the server
+* int : the socket conected to the server
+* int : input FD
+* int : output FD
 
 ## Build
 ``` make ```
