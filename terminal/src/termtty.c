@@ -1,3 +1,5 @@
+//termtty : version 1.0.0
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/select.h>
@@ -39,16 +41,17 @@ void received_sigchld_on_terminal(int sig) {
 	}
 }	
 
+int winout;
+
 /*
 Action on SIGWINCH to manage TTY resizing
 */
 void resizeTTY(int sig) {
-	
-        struct winsize termsize;
-    	ioctl(STDIN_FILENO,TIOCGWINSZ,&termsize);
-        Child * child;
+    struct winsize termsize;
+	ioctl(winout,TIOCGWINSZ,&termsize);
+	Child * child;
 	child=childList;
-        while (child!=NULL) {
+    while (child!=NULL) {
 		ioctl(child->fd,TIOCSWINSZ,&termsize);
 		child=child->next;
 	}
@@ -136,6 +139,8 @@ int start_terminal(int input, int output) {
 	int count;
 	int maxfd;
 
+	winout=output;
+
 	//Create the Child structure
 	child=init_child();
 	
@@ -154,16 +159,16 @@ int start_terminal(int input, int output) {
 		execv(argv[0], argv);
 		//child process ends here
 	} else {
-	        //Create the sigaction structure to handle SIGWINCH signal
-        	struct sigaction eventWindowResize;
-        	sigemptyset(&eventWindowResize.sa_mask);
-        	eventWindowResize.sa_flags=0;
-        	eventWindowResize.sa_handler= resizeTTY;
+		//Create the sigaction structure to handle SIGWINCH signal
+	    struct sigaction eventWindowResize;
+		sigemptyset(&eventWindowResize.sa_mask);
+		eventWindowResize.sa_flags=0;
+		eventWindowResize.sa_handler= resizeTTY;
 
-        	//Change TTY size to the actual size of the terminal
-        	struct winsize termsize;
-        	ioctl(STDOUT_FILENO,TIOCGWINSZ,&termsize);
-        	ioctl(child->fd,TIOCSWINSZ,&termsize);
+		//Change TTY size to the actual size of the terminal
+		struct winsize termsize;
+		ioctl(output,TIOCGWINSZ,&termsize);
+		ioctl(child->fd,TIOCSWINSZ,&termsize);
 
 	
 		//here we are in the parent process
