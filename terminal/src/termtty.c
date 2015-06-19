@@ -6,6 +6,7 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <stdlib.h>
 #include "termtty.h"
 
 
@@ -38,6 +39,21 @@ void received_sigchld_on_terminal(int sig) {
 	}
 }	
 
+/*
+Action on SIGWINCH to manage TTY resizing
+*/
+void resizeTTY(int sig) {
+	
+        struct winsize termsize;
+    	ioctl(STDIN_FILENO,TIOCGWINSZ,&termsize);
+        Child * child;
+	child=childList;
+        while (child!=NULL) {
+		ioctl(child->fd,TIOCSWINSZ,&termsize);
+		child=child->next;
+	}
+}
+
 
 void set_input_opt(Child * child, int input) {
 	struct termios ttystate;
@@ -61,11 +77,13 @@ void restore_input_opt(Child * child, int input) {
 void listen_sigchld() {
 	struct sigaction eventSigChld;
 	//Create the sigaction structure to handle SIGCHLD signal
-    sigemptyset(&eventSigChld.sa_mask);
-    eventSigChld.sa_flags=0;
-    eventSigChld.sa_handler= received_sigchld_on_terminal;
+	sigemptyset(&eventSigChld.sa_mask);
+	eventSigChld.sa_flags=0;
+	eventSigChld.sa_handler= received_sigchld_on_terminal;
 	sigaction(SIGCHLD,&eventSigChld, NULL);
 }
+
+
 
 
 /*
@@ -110,12 +128,12 @@ send all shell output on output FD and read input FD to send commands to the she
 */
 int start_terminal(int input, int output) {
 	Child * child;
-    fd_set readset;
-    int result;
+	fd_set readset;
+	int result;
 	sigset_t mask;
 	
 	char buffer[100];
-    int count;
+	int count;
 	int maxfd;
 
 	//Create the Child structure
@@ -128,7 +146,7 @@ int start_terminal(int input, int output) {
 
 	//Create the fork PTY to manage our shell
 	child->pid = forkpty(&(child->fd), NULL, NULL, NULL);
-    if (child->pid==-1) {
+	if (child->pid==-1) {
 		return -1;
 	} else if (child->pid == 0) {
 		//here we are the child process
@@ -136,6 +154,18 @@ int start_terminal(int input, int output) {
 		execv(argv[0], argv);
 		//child process ends here
 	} else {
+	        //Create the sigaction structure to handle SIGWINCH signal
+        	struct sigaction eventWindowResize;
+        	sigemptyset(&eventWindowResize.sa_mask);
+        	eventWindowResize.sa_flags=0;
+        	eventWindowResize.sa_handler= resizeTTY;
+
+        	//Change TTY size to the actual size of the terminal
+        	struct winsize termsize;
+        	ioctl(STDOUT_FILENO,TIOCGWINSZ,&termsize);
+        	ioctl(child->fd,TIOCSWINSZ,&termsize);
+
+	
 		//here we are in the parent process
 		child->next=childList;
 		childList=child;
@@ -148,7 +178,7 @@ int start_terminal(int input, int output) {
 
 	
 		//Initialize the flag to signal child has end
-		child->listen=1;
+		child->started=1;
 	
 		if (child->fd>input) {
 			maxfd=child->fd+1;
@@ -183,7 +213,7 @@ int start_terminal(int input, int output) {
 					}
 				}
 			}
-		} while (child->listen);
+		} while (child->started);
 		remove_child(child->pid);
 		//reset input to its original mode and quit
 		restore_input_opt(child,input);
