@@ -1,4 +1,4 @@
-//version 1.0.1
+//version 1.0.2
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sys/ioctl.h>
+#include <signal.h>
 #include "tcpclient.h"
 
 int serverfd=-1;
