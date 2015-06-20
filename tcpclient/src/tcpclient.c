@@ -24,6 +24,7 @@ static void resizeTTY(int sig) {
     struct winsize termsize;
 	ioctl(outputfd,TIOCGWINSZ,&termsize);
 	ioctl(serverfd,TIOCSWINSZ,&termsize);
+	printf("Change windows size to %dx%d\n",termsize.w_col, termsize.w_row);
 }
 
 
@@ -73,7 +74,7 @@ int client_connect(char * host, unsigned int port, client_handler handler, int i
 	ioctl(output,TIOCGWINSZ,&termsize);
 	ioctl(serverfd,TIOCSWINSZ,&termsize);
 
-	
+	printf("Change windows size to %dx%d\n",termsize.w_col, termsize.w_row);
 	handler(serverfd, input, output);
 	
 	shutdown(serverfd,2);
