@@ -2,6 +2,7 @@
 #define _TCPSERVER_H
 #include <sys/socket.h>
 
+#define MDE_TCPCLIENT_VERSION "1.1.0"
 //Can't retrieve the IP for the given host name
 #define ERRINVALIDHOSTNAME	-1
 #define ERRCANTCREATESOCKET -2

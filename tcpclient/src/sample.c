@@ -7,6 +7,13 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include "tcpclient.h"
+#include "options.h"
+
+void version(char * cmd) {
+	printf("TCP Client version %s\n",MDE_TCPCLIENT_VERSION);
+	printf("https://github.com/marc-despland/samples\n\n");
+}
+
 
 
 int handler(int serverfd, int input, int output) {
@@ -57,23 +64,38 @@ int handler(int serverfd, int input, int output) {
 	return 1;
 }
 
-int main() {
+int main(int argc, char **argv) {
+	char * hostname="";
+	unsigned int port=0;
 	int ret;
-	// Backup intial TTY mode of STDIN
-	struct termios orgttystate;
-	tcgetattr(STDIN_FILENO, &orgttystate);
-
-	// Update STDIN mode to remove ECHO and ICANON to allow transmission of character without buffering and echo
-	struct termios ttystate;
-	tcgetattr(STDIN_FILENO, &ttystate);
-	ttystate.c_lflag &= ~ICANON;
-	ttystate.c_lflag &= ~ECHO;
-	ttystate.c_cc[VMIN] = 1;
-	tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
-
-	ret=client_connect("192.168.1.23", 6666, &handler, STDIN_FILENO, STDOUT_FILENO);
 	
-	tcsetattr(STDIN_FILENO, TCSANOW, &orgttystate);
-	printf("Client close : %d %d\n",ret,tcperrno);
-	return 1;
+	Option options[]={
+			{'s',"server","The server FQDN or IP to connect to", TRUE,TRUE,FALSE,&hostname, STRING},
+			{'p',"port","The port to connect on the server", TRUE,TRUE,FALSE,&port, INT}
+	};
+	int result= parse_options(argc, argv, options, 2, version);
+	if (result<0) {
+		return 0;
+	} else {
+	
+		// Backup intial TTY mode of STDIN
+		struct termios orgttystate;
+		tcgetattr(STDIN_FILENO, &orgttystate);
+
+		// Update STDIN mode to remove ECHO and ICANON to allow transmission of character without buffering and echo
+		struct termios ttystate;
+		tcgetattr(STDIN_FILENO, &ttystate);
+		ttystate.c_lflag &= ~ICANON;
+		ttystate.c_lflag &= ~ECHO;
+		ttystate.c_cc[VMIN] = 1;
+		tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+		
+		printf("Trying to connect on %s port %d\n",hostname, port);
+		
+		ret=client_connect(hostname,port, &handler, STDIN_FILENO, STDOUT_FILENO);
+	
+		tcsetattr(STDIN_FILENO, TCSANOW, &orgttystate);
+		printf("Client close : %d %d\n",ret,tcperrno);
+		return 1;
+	}
 }
