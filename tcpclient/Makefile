@@ -13,7 +13,7 @@ DEBUGFLAGS = -g
 all: $(TARGET)
  
 $(TARGET): $(OBJECTS) $(HEADERS)
-	$(CC) $(FLAGS) $(CFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(OBJECTS)
+	$(CC)  $(FLAGS) $(CFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(OBJECTS)
  
 clean:
 	-rm -f $(OBJECTS)
@@ -25,9 +25,9 @@ distclean: clean
  
 .SECONDEXPANSION:
  
-$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(FLAGS) -MM $(OBJ:.o=.c) | sed s/.*://)))
+$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell gcc -I ./include  -MM $(OBJ:.o=.c) | sed s/.*://)))
 %.o: %.c $$($$@_DEPS)
-	$(CC) $(FLAGS) $(CFLAGS) $(DEBUGFLAGS) -c -o $@ $<
+	$(CC) $(FLAGS) -I ./include $(CFLAGS) $(DEBUGFLAGS) -c -o $@ $<
   
  
 .PHONY : all install uninstall clean distclean
