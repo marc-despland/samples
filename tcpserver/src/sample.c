@@ -4,6 +4,13 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include "tcpserver.h"
+#include "options.h"
+
+void version(char * cmd) {
+	printf("TCP Server version %s\n",MDE_TCPSERVER_VERSION);
+	printf("https://github.com/marc-despland/samples\n\n");
+}
+
 
 int handler(int clientfd, struct sockaddr_in client, socklen_t clientsize) {
 	int go=1;
@@ -36,8 +43,18 @@ int handler(int clientfd, struct sockaddr_in client, socklen_t clientsize) {
 	return 1;
 }
 
-int main() {
-
-	listen_request(6666,12,&handler);
-    return 1;
+int main(int argc, char **argv) {
+	unsigned int port=0;
+	unsigned int pool=12;
+	Option options[]={
+			{'n',"poolsize","The number of simultaneous clients that can connect", TRUE,FALSE,FALSE,&pool, INT},
+			{'p',"port","The port to listen to", TRUE,TRUE,FALSE,&port, INT}
+	};
+	int result= parse_options(argc, argv, options, 2, version);
+	if (result<0) {
+		return 0;
+	} else {
+		listen_request(port,pool,&handler);
+    	return 1;
+    }
 }
