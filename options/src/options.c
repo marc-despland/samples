@@ -13,6 +13,7 @@ int parse_options(int argc, char **argv, Option options[],int options_length, di
 	int result=1;
 	int i;
 	int opt;
+	int count;
 	bzero(shortlist, sizeof(char)*((options_length+2)*2));	
 
 	for (i=0; i<options_length; i++) {
@@ -43,7 +44,7 @@ int parse_options(int argc, char **argv, Option options[],int options_length, di
 		switch(opt) {
 			case 'h':
 				//Display help message
-				int count=2;
+				count=2;
 				printf(" usage : %s	[-h|--help] [-v|--version] ",argv[0]);
 				for (i=0; i<options_length; i++) {
 					if (options[i].mandatory) {
