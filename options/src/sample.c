@@ -28,13 +28,21 @@ int main(int argc, char **argv) {
 			{'s',"string","An example of string parameter", TRUE,FALSE,FALSE,&values, STRING},
 			{'m',"mandatory","A mandatory parameter", FALSE,TRUE,FALSE,NULL, NONE}	
 	};
+	int i;
 
 	int result= parse_options(argc, argv, options, 5, version);
-	printf("Result : %d\n",result);
+	
+	printf("\nResult : %d\n",result);
 	printf("	valuei %d\n",valuei);
 	printf("	valuel %ld\n",valuel);
 	printf("	valued %f\n",valued);
 	printf("	valuec %s\n",values);
-	
+
+	printf("\n");
+
+	if (result>=0) {
+		printf("Non option parameters :\n");
+		for(i=result;i<argc;i++) printf("%d : %s\n",i,argv[i]);
+	}
 	return 1;
 }
