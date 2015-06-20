@@ -1,8 +1,8 @@
 SHELL = /bin/sh
 CC    = gcc
  
-FLAGS        = -I ./include
-CFLAGS       = -Wall
+FLAGS        = 
+CFLAGS       = -Wall -I ./include
  
 TARGET  = tcpserver
 SOURCES = $(shell echo src/*.c)
@@ -25,7 +25,7 @@ distclean: clean
  
 .SECONDEXPANSION:
  
-$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(FLAGS) -MM $(OBJ:.o=.c) | sed s/.*://)))
+$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell gcc -I ./include  -MM $(OBJ:.o=.c) | sed s/.*://)))
 %.o: %.c $$($$@_DEPS)
 	$(CC) $(FLAGS) $(CFLAGS) $(DEBUGFLAGS) -c -o $@ $<
   
