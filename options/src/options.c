@@ -1,17 +1,23 @@
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <stdio.h>
 #include "options.h"
 
-int parse_options(int argc, char **argv, Option options[], display_version_function display_version) {
-	char * shortlist=(char *) malloc(sizeof(char)*((options.length+2)*2));
-	struct option *longlist= (struct option *) malloc(sizeof(struct option)*(options.length+2));
+int parse_options(int argc, char **argv, Option options[],int options_length, display_version_function display_version) {
+	char * shortlist=(char *) malloc(sizeof(char)*((options_length+2)*2));
+	struct option *longlist= (struct option *) malloc(sizeof(struct option)*(options_length+2));
 	int index=0;
 	shortlist[0]=0;
 	int result=1;
-	
-	for (int i=0; i<options.length; i++) {
+	int i;
+	int opt;
+	bzero(shortlist, sizeof(char)*((options_length+2)*2));	
+
+	for (i=0; i<options_length; i++) {
 		options[i].isset=FALSE;
-		strcat(shortlist,options[i].shortoption);
+		shortlist[strlen(shortlist)]=options[i].shortoption;
 		longlist[i].name=strdup(options[i].longoption);
 		if (options[i].hasvalue) {
 			strcat(shortlist,":");
@@ -23,32 +29,34 @@ int parse_options(int argc, char **argv, Option options[], display_version_funct
 		longlist[i].val=options[i].shortoption;
 	}
 	strcat(shortlist,"hv");
-	longlist[options.length].name="help";
-	longlist[options.length].has_arg=no_argument;
-	longlist[options.length].flag=0;
-	longlist[options.length].val='h';
-	longlist[options.length+1].name="version";
-	longlist[options.length+1].has_arg=no_argument;
-	longlist[options.length+1].flag=0;
-	longlist[options.length+1].val='v';
+	longlist[options_length].name="help";
+	longlist[options_length].has_arg=no_argument;
+	longlist[options_length].flag=0;
+	longlist[options_length].val='h';
+	longlist[options_length+1].name="version";
+	longlist[options_length+1].has_arg=no_argument;
+	longlist[options_length+1].flag=0;
+	longlist[options_length+1].val='v';
 	
 	while ((opt=getopt_long(argc, argv, shortlist,longlist, &index))>0) {
-		if (longlist[index].val=='h') {
+		printf("Read option:%c index=%d\n",opt,index);
+		switch(opt) {
+			case 'h':
 			//Display help message
 			int count=2;
 			printf(" usage : %s	[-h|--help] [-v|--version] ",argv[0]);
-			for (int i=0; i<options.length; i++) {
+			for (i=0; i<options_length; i++) {
 				if (options[i].mandatory) {
 					if (options[i].hasvalue) {
-						printf("-%s|--%s value",options[i].shortoption, options[i].longoption);
+						printf("-%c|--%s value",options[i].shortoption, options[i].longoption);
 					} else {
-						printf("-%s|--%s ",options[i].shortoption, options[i].longoption);
+						printf("-%c|--%s ",options[i].shortoption, options[i].longoption);
 					}
 				} else {
 					if (options[i].hasvalue) {
-						printf("[-%s|--%s value]",options[i].shortoption, options[i].longoption);
+						printf("[-%c|--%s value]",options[i].shortoption, options[i].longoption);
 					} else {
-						printf("[-%s|--%s] ",options[i].shortoption, options[i].longoption);
+						printf("[-%c|--%s] ",options[i].shortoption, options[i].longoption);
 					}
 				}
 				count++;
@@ -58,52 +66,59 @@ int parse_options(int argc, char **argv, Option options[], display_version_funct
 				}
 			}
 			printf("\n\nDescription:\n");
-			printf("-h --help		: Display this help message\n");
+			printf("-h --help	: Display this help message\n");
 			printf("-v --version	: Display %s version\n", argv[0]);
-			for (int i=0; i<options.length; i++) {
-				printf("-%s --%s	: %s\n",options[i].shortoption, options[i].longoption, options[i].description);
+			for (i=0; i<options_length; i++) {
+				printf("-%c --%s	: %s\n",options[i].shortoption, options[i].longoption, options[i].description);
 			}
 			return(0);
-		}
-		if (longlist[index].val=='v') {
+			break;
+			case 'v':
 			//Display the version
 			display_version(argv[0]);
 			return(0);
-		}
-		if (index<options.index) {
+			break;
+			case '?':
+				printf("Unknown option\n");
+			break;
+			default:
+		if (index<options_length) {
 			if (options[index].hasvalue) {
 				if (optarg==0) {
 					result=-1;
-					printf("Error, missing value for -%s --%s : %s\n",options[index].shortoption, options[index].longoption, options[index].description);
+					printf("Error, missing value for -%c --%s : %s\n",options[index].shortoption, options[index].longoption, options[index].description);
 				} else {
 					options[index].isset=TRUE;
 					switch (options[index].type) {
 						case STRING:
-							*(options[index].target)=strdup(optarg);
+							*((char **) options[index].target)=strdup(optarg);
 						break;
 						case INT :
-							*(options[index].target)=atoi(optarg);
+							*((int *) options[index].target)=atoi(optarg);
 						break;
 						case LONG :
-							*(options[index].target)=atol(optarg);
+							*((long *) options[index].target)=atol(optarg);
 						break;
 						case DOUBLE:
-							*(options[index].target)=atof(optarg);
+							*((double *)options[index].target)=atof(optarg);
+						break;
+						case NONE:
 						break;
 					}
 				}
 			} else {
 				options[index].isset=TRUE;
 			}
+			break;
 		}
 	} //End while loop on getopt
 	
 	//Now check that every required option is set.
-	for (int i=0; i<options.length; i++) {
+	for (i=0; i<options_length; i++) {
 		if (options[i].mandatory) {
 			if (!options[i].isset) {
 				result=-1;
-				printf("Missing required parameter -%s --%s : %s\n",options[i].shortoption, options[i].longoption, options[i].description);
+				printf("Missing required parameter -%c --%s : %s\n",options[i].shortoption, options[i].longoption, options[i].description);
 			}
 		}
 	}
