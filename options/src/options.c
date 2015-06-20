@@ -40,7 +40,7 @@ int parse_options(int argc, char **argv, Option options[],int options_length, di
 	longlist[options_length+1].val='v';
 	
 	while ((opt=getopt_long(argc, argv, shortlist,longlist, &index))>0) {
-		printf("Read option:%c index=%d\n",opt,index);
+		//printf("Read option:%c index=%d\n",opt,index);
 		switch(opt) {
 			case 'h':
 				//Display help message
@@ -49,19 +49,19 @@ int parse_options(int argc, char **argv, Option options[],int options_length, di
 				for (i=0; i<options_length; i++) {
 					if (options[i].mandatory) {
 						if (options[i].hasvalue) {
-							printf("-%c|--%s value",options[i].shortoption, options[i].longoption);
+							printf("-%c|--%s <value> ",options[i].shortoption, options[i].longoption);
 						} else {
 							printf("-%c|--%s ",options[i].shortoption, options[i].longoption);
 						}
 					} else {
 						if (options[i].hasvalue) {
-							printf("[-%c|--%s value]",options[i].shortoption, options[i].longoption);
+							printf("[-%c|--%s <value>] ",options[i].shortoption, options[i].longoption);
 						} else {
 							printf("[-%c|--%s] ",options[i].shortoption, options[i].longoption);
 						}
 					}
 					count++;
-					if (count>5) {
+					if (count>3) {
 						printf("\n			");
 						count=0;
 					}
@@ -72,15 +72,15 @@ int parse_options(int argc, char **argv, Option options[],int options_length, di
 				for (i=0; i<options_length; i++) {
 					printf("-%c --%s	: %s\n",options[i].shortoption, options[i].longoption, options[i].description);
 				}
-				return(0);
+				return(DISPLAY_HELP);
 			break;
 			case 'v':
 				//Display the version
 				display_version(argv[0]);
-				return(0);
+				return(DISPLAY_VERSION);
 			break;
 			case '?':
-				printf("Unknown option\n");
+				//@printf("Unknown option\n");
 			break;
 			default:
 				index=options_length;
@@ -116,12 +116,12 @@ int parse_options(int argc, char **argv, Option options[],int options_length, di
 			break;
 		}
 	} //End while loop on getopt
-	
+	result=optind;
 	//Now check that every required option is set.
 	for (i=0; i<options_length; i++) {
 		if (options[i].mandatory) {
 			if (!options[i].isset) {
-				result=-1;
+				result=MISSING_MANDATORY;
 				printf("Missing required parameter -%c --%s : %s\n",options[i].shortoption, options[i].longoption, options[i].description);
 			}
 		}
