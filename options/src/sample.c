@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 			{'s',"string","An example of string parameter", TRUE,FALSE,FALSE,&values, STRING},
 			{'m',"mandatory","A mandatory parameter", FALSE,TRUE,FALSE,NULL, NONE}	
 	};
-	printf("Size of options=%ld / size of *options=%ld Nb elt=%ld\n", sizeof(options), sizeof(*options), sizeof(options)/sizeof(*options));	
+
 	int result= parse_options(argc, argv, options, 5, version);
 	printf("Result : %d\n",result);
 	printf("	valuei %d\n",valuei);
