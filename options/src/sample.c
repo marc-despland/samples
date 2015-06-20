@@ -7,14 +7,6 @@ void version(char * cmd) {
 	printf("Sample Command Line Option Parser version %s\n",MDE_OPTIONS_VERSION);
 	printf("https://github.com/marc-despland/samples\n\n");
 }
-	char shortoption;
-	char * longoption;
-	char * description;
-	BOOL hasvalue;
-	BOOL mandatory;
-	BOOL isset;
-	void * target;
-	optionType type;
 
 int main(int argc, char **argv) {
 	int valuei=0;
