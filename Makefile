@@ -1,5 +1,5 @@
 
-all:	tcpserver tcpclient terminal
+all:	tcpserver tcpclient terminal options
 
 tcpserver:
 	make -C tcpserver 
@@ -10,4 +10,8 @@ tcpclient:
 terminal:
 	make -C terminal
 
-.PHONY: tcpserver tcpclient terminal
+options:
+	make -C options
+
+
+.PHONY: tcpserver tcpclient terminal options
