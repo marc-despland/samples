@@ -1,3 +1,4 @@
+//version 1.0.1
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -12,14 +13,14 @@
 /*
 Action on SIGCHLD to manage Child termination
 */
-void received_sigchld_on_tcpserver(int sig) {
+static void received_sigchld_on_tcpserver(int sig) {
 	int status,pid;
 	//wait for one child process ends
 	pid=wait(&status);
 	printf("wait pid=%d status=%d\n",pid,status);
 }
 
-void listen_sigchld() {
+static void listen_sigchld() {
 	struct sigaction eventSigChld;
 	//Create the sigaction structure to handle SIGCHLD signal
 	sigemptyset(&eventSigChld.sa_mask);

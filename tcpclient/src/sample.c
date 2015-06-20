@@ -59,7 +59,7 @@ int handler(int serverfd, int input, int output) {
 
 int main() {
 	int ret;
-		// Backup intial TTY mode of STDIN
+	// Backup intial TTY mode of STDIN
 	struct termios orgttystate;
 	tcgetattr(STDIN_FILENO, &orgttystate);
 

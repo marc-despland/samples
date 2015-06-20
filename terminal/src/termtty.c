@@ -1,4 +1,4 @@
-//termtty : version 1.0.0
+//termtty : version 1.0.1
 
 #include <unistd.h>
 #include <stdio.h>
@@ -25,7 +25,7 @@ Child * childList=NULL;
 /*
 Action on SIGCHLD to manage Child termination
 */
-void received_sigchld_on_terminal(int sig) {
+static void received_sigchld_on_terminal(int sig) {
 	int status,pid;
 	Child * child;
 	//wait for one child process ends
@@ -46,7 +46,7 @@ int winout;
 /*
 Action on SIGWINCH to manage TTY resizing
 */
-void resizeTTY(int sig) {
+static void resizeTTY(int sig) {
     struct winsize termsize;
 	ioctl(winout,TIOCGWINSZ,&termsize);
 	Child * child;
@@ -58,7 +58,7 @@ void resizeTTY(int sig) {
 }
 
 
-void set_input_opt(Child * child, int input) {
+static void set_input_opt(Child * child, int input) {
 	struct termios ttystate;
 
 	// Backup intial TTY mode of input fd
@@ -72,12 +72,12 @@ void set_input_opt(Child * child, int input) {
 	tcsetattr(input, TCSANOW, &ttystate);
 }
 
-void restore_input_opt(Child * child, int input) {
+static void restore_input_opt(Child * child, int input) {
 	tcsetattr(input, TCSANOW, &(child->inputopt));
 }
 
 
-void listen_sigchld() {
+static void listen_sigchld() {
 	struct sigaction eventSigChld;
 	//Create the sigaction structure to handle SIGCHLD signal
 	sigemptyset(&eventSigChld.sa_mask);
@@ -92,7 +92,7 @@ void listen_sigchld() {
 /*
 Remove a child from the child list
 */	
-void remove_child(int pid) {
+static void remove_child(int pid) {
 	Child * child=childList;
 	Child * previous=NULL;
 	while ((child!=NULL) && (child->pid!=pid)) {
@@ -114,7 +114,7 @@ void remove_child(int pid) {
 	}
 }	
 
-Child * init_child() {
+static Child * init_child() {
 	Child * child;
 	child=(Child *) malloc(sizeof(Child));
 	child->next=NULL;
