@@ -22,7 +22,7 @@ int handler(int clientfd, struct sockaddr_in client, socklen_t clientsize) {
 	inet_ntop(AF_INET, &(client.sin_addr), address, INET6_ADDRSTRLEN );
 	printf("Coonection established from %s\n",address);
 	send(clientfd,"You are connected to a test server\n", 35, 0);
-	send(clientfd,"Send CTRL+D to end the connection, the server will echo all other input\n\n", 71, 0);
+	send(clientfd,"Send CTRL+D to end the connection, the server will echo all other input\n\n", 73, 0);
 	while (go) {
 		n = recv(clientfd,buffer,sizeof(buffer)-2,0);
 		//printf("Receive %d char\n",n);
