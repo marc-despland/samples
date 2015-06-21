@@ -171,8 +171,8 @@ int start_terminal(int input, int output) {
 
 		//Change TTY size to the actual size of the terminal
 		struct winsize termsize;
-		ioctl(output,TIOCGWINSZ,&termsize);
-		ioctl(child->fd,TIOCSWINSZ,&termsize);*/
+		ioctl(context.output,TIOCGWINSZ,&termsize);
+		ioctl(context.terminalfd,TIOCSWINSZ,&termsize);*/
 
 		
 		//Start handling signal
@@ -188,17 +188,17 @@ int start_terminal(int input, int output) {
 		do {
 			//initialize file descriptor mask for select
 			FD_ZERO(&readset);
-			FD_SET(input, &readset);
-			FD_SET(child->fd, &readset);
+			FD_SET(context.input, &readset);
+			FD_SET(context.terminalfd, &readset);
 		
 		
 			//Block until something to read on child stdout, parent stdin or SIGCHLD
 			result = pselect(maxfd(context.terminalfd, context.input), &readset, NULL, NULL, NULL, &mask);
 			
 			if (result > 0) {
-				if (FD_ISSET(child->fd, &readset)) {
+				if (FD_ISSET(context.terminalfd, &readset)) {
 					//Child has write on its stdout
-					count = read(child->fd, buffer, sizeof(buffer)-1);
+					count = read(context.terminalfd, buffer, sizeof(buffer)-1);
 					if (count >= 0) {
 						buffer[count]=0;
 						message=context.encoder(buffer, &count);
@@ -208,9 +208,9 @@ int start_terminal(int input, int output) {
 						}
 					}
 				}
-				if (FD_ISSET(input, &readset)) {
+				if (FD_ISSET(context.input, &readset)) {
 					//User has write some stuff
-					count = read(input, buffer, sizeof(buffer)-1);
+					count = read(context.input, buffer, sizeof(buffer)-1);
 					if (count >= 0) {
 						message=context.decoder(buffer,count);
 						if (message!=NULL) {
