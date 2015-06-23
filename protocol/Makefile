@@ -1,10 +1,10 @@
 SHELL = /bin/sh
-CC    = gcc
+CC    = g++
 
 CFLAGS       = -Wall 
 LDLIBS		 = -Iinclude
 TARGET  = protocol
-SOURCES = $(shell echo src/*.c)
+SOURCES = $(shell echo src/*.cpp)
 HEADERS = $(shell echo include/*.h)
 OBJECTS = $(SOURCES:.c=.o)
 DEBUGFLAGS = -g
@@ -24,7 +24,7 @@ distclean: clean
  
 .SECONDEXPANSION:
  
-$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(CFLAGS) -MM $(OBJ:.o=.c) | sed s/.*://)))
+$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(CFLAGS) -MM $(OBJ:.o=.cpp) | sed s/.*://)))
 %.o: %.c $$($$@_DEPS)
 	$(CC) $(CFLAGS) $(LDLIBS) -c -o $@ $<
   

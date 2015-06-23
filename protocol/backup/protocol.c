@@ -10,6 +10,36 @@
 
 #define COMMAND_RESIZETTY	1
 
+
+Protocol::Protocol() {
+}
+
+Protocol::~Protocol() {
+}
+
+void Protocol::setAction(IProtocolAction * action) {
+	this->action=action;
+}
+char * Protocol::decodeBuffer(char * buffer, int size) {
+
+}
+
+char * Protocol::encodeMessage(char * message, int * size) {
+
+}
+
+
+char * Protocol::encodeAction(unsigned short code, char * argv, int * size) {
+
+}
+
+
+bool Protocol::isDecoderReady() {
+
+}
+
+
+
 typedef struct ProtocolContext {
 	char * 				buffer;
 	int 				buffersize;
