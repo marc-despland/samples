@@ -1,8 +1,8 @@
 SHELL = /bin/sh
 CC    = g++
 
-CFLAGS       = -Wall 
-LDLIBS		 = -Iinclude
+CFLAGS       = -Wall  -Iinclude
+LDLIBS		 = 
 TARGET  = protocol
 SOURCES = $(shell echo src/*.cpp)
 HEADERS = $(shell echo include/*.h)

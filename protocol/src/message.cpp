@@ -1,12 +1,24 @@
 #include "message.h"
+#include <string.h>
 
 Message::Message():Packet() {
-	this.code=Message::CODEMESSAGE;
+	this->code=Message::CODEMESSAGE;
 }
-		
-Message Message::operator=(string str) {
-	this.length=str.length;
-	this.datasize=str.length;
-	this.data=new char[this.datasize];
-	memcopy(this.data, str.data, this.datasize);
+
+Message::Message(string str):Packet() {
+        this->code=Message::CODEMESSAGE;
+	this->length=(unsigned int) str.length();
+        this->datasize=this->length;
+        this->data=new char[this->datasize];
+        memcpy((void *) this->data, (const void *)str.data(), this->datasize);
 }
+
+
+Message::Message(const char str[]):Packet() {
+        this->code=Message::CODEMESSAGE;
+        this->length=(unsigned int) strlen(str);
+        this->datasize=this->length;
+        this->data=new char[this->datasize];
+        memcpy((void *) this->data, (const void *)str, this->datasize);
+}
+

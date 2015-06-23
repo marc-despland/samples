@@ -1,7 +1,7 @@
 #ifndef _MESSAGE_H
 #define _MESSAGE_H
 
-#iclude <string>
+#include <string>
 using namespace std;
 
 
@@ -12,14 +12,15 @@ using namespace std;
  * Packet is composed of a code that describe the type of packet, a 
  * length encoded on 4 digit that decribe the size of the data, and a block of data.
  */
-class Message: public Packet {
+class Message : public Packet {
 	public:
 		/**
 		 * Create a new empty Message
 		 */
 		Message();
-		
-		Message operator=(string);
-		static cont unsigned short CODEMESSAGE=1;
-}
-#endif _MESSAGE_H	
+		Message(string str);
+		Message(const char str[]);
+	
+		static const unsigned short CODEMESSAGE=1;
+};
+#endif 

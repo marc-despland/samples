@@ -57,7 +57,7 @@ class Packet {
 		 */
 		char * getRawData();
 		
-		static cont unsigned short NOCODE=10;
+		static const unsigned short NOCODE=10;
 	protected:
 		unsigned short code;
 		unsigned int length;
