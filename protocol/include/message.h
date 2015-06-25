@@ -4,8 +4,15 @@
 #include <string>
 using namespace std;
 
-
+#include <exception>
 #include "packet.h"
+
+
+
+class InvalidMessageException : public exception {
+	const char* what();
+};
+
 
 /**
  * Packet class manage based data exchange between client and server. 
@@ -20,7 +27,10 @@ class Message : public Packet {
 		Message();
 		Message(string str);
 		Message(const char str[]);
-	
+		Message(Packet packet) throw(InvalidMessageException);
+		string message();
+		
+		static bool isMessage(Packet packet);
 		static const unsigned short CODEMESSAGE=1;
 };
 #endif 

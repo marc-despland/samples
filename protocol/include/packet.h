@@ -1,6 +1,17 @@
 #ifndef _PACKET_H
 #define _PACKET_H
 using namespace std;
+#include <exception>
+#include "buffer.h"
+
+
+class PacketInvalidHeaderException : public exception {
+	const char* what();
+};
+
+class PacketNotReadyException : public exception {
+	const char* what();
+};
 
 /**
  * Packet class manage based data exchange between client and server. 
@@ -8,6 +19,11 @@ using namespace std;
  * length encoded on 4 digit that decribe the size of the data, and a block of data.
  */
 class Packet {
+	protected:
+		/**
+		 * Create a new empty packet with thegiven code
+		 */
+		Packet(unsigned short code);
 	public:
 		/**
 		 * Create a new empty packet
@@ -31,7 +47,7 @@ class Packet {
 		 * @param size a pointer to the buffer size, could be modified by the function
 		 * @return true if the Packet is ready
 		 */
-		bool readData(char ** buffer, unsigned int * size);
+		bool readData(Buffer * buffer) throw (PacketInvalidHeaderException);
 		/**
 		 * Return the code of the Packet
 		 */

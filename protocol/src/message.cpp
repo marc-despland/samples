@@ -1,6 +1,11 @@
 #include "message.h"
 #include <string.h>
 
+
+const char* InvalidMessageException::what() {
+	return "Packet not a valid message";
+}
+
 Message::Message():Packet() {
 	this->code=Message::CODEMESSAGE;
 }
@@ -20,5 +25,28 @@ Message::Message(const char str[]):Packet() {
         this->datasize=this->length;
         this->data=new char[this->datasize];
         memcpy((void *) this->data, (const void *)str, this->datasize);
+}
+
+Message::Message(Packet packet) throw(InvalidMessageException):Packet(Message::CODEMESSAGE){
+	if (! Message::isMessage(packet)) {
+		throw  InvalidMessageException();
+	} else {
+		
+		this->length=packet.getLength();
+		this->datasize=packet.getLength();
+		this->data=new char[this->datasize+1];
+		this->data[this->datasize]=0;
+		memcpy((void *) this->data, packet.getData(), this->datasize);
+	}
+}
+
+string Message::message() {
+	if (this->data==NULL) return "";
+	return this->data;
+
+}
+
+bool Message::isMessage(Packet packet) {
+	return ((packet.getCode()==Message::CODEMESSAGE) && packet.isReady());
 }
 

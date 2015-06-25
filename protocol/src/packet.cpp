@@ -1,5 +1,33 @@
 #include "packet.h"
 #include <string.h>
+#include <stdio.h>
+#include <iostream>
+#include <ctype.h>
+
+#define CODE_PRECISION		1
+#define LENGTH_PRECISION	4
+#define HEADERS_SIZE		CODE_PRECISION+LENGTH_PRECISION
+
+
+
+
+const char* PacketInvalidHeaderException::what() {
+	return "Can't decode packet headers";
+}
+
+
+const char* PacketNotReadyException::what() {
+	return "Operation forbidden on packet not ready";
+}
+
+
+Packet::Packet(unsigned short code) {
+	this->code=code;
+	this->length=0;
+	this->datasize=0;
+	this->data=NULL;
+}
+
 
 Packet::Packet() {
 	this->code=Packet::NOCODE;
@@ -20,8 +48,42 @@ Packet::~Packet() {
 	if (this->data!=NULL) delete this->data;
 }
 
-bool Packet::readData(char ** buffer, unsigned int * size) {
-	return false;
+
+bool Packet::readData(Buffer * buffer) throw (PacketInvalidHeaderException) {
+	if (this->code==Packet::NOCODE) {
+		try {
+			char * headers=buffer->read(HEADERS_SIZE);
+			bool isnumber=true;
+			for (int i=0;i<HEADERS_SIZE;i++) isnumber=isnumber && isdigit(headers[i]);
+			if (!isnumber) {
+				//We have an invalid packet
+				throw PacketInvalidHeaderException();
+			}
+			int res=sscanf(headers,"%1hu%4u",&(this->code), &(this->length));
+			delete headers;
+			if (res!=2) {
+				//We have an invalid packet
+				throw PacketInvalidHeaderException();
+			}
+			this->data=new char[this->length+1];
+			memset(this->data,0,this->length+1);
+		} catch(PacketBufferSizeException &e) {
+			//there is no enought data on buffer to read packet headers. 
+			//we keep buffer unchange
+			return false;
+		}
+	}
+	//So here we have a valid code and length
+	unsigned int toread=this->length-this->datasize;
+	if (toread>buffer->size()) toread=buffer->size();
+	try {
+		char * tmp=buffer->read(toread);
+		memcpy(this->data+this->datasize, tmp, toread);
+		this->datasize+=toread;
+	} catch(PacketBufferSizeException &e) {
+		//Impossible 
+	}
+	return (this->length==this->datasize);
 }
 
 unsigned short Packet::getCode() {
@@ -37,12 +99,16 @@ char * Packet::getData() {
 }
 
 bool Packet::isReady() {
-	return (this->length==this->datasize);
+	return (this->code!=Packet::NOCODE) && (this->length==this->datasize);
 }
 
 unsigned int Packet::getRawDataLength() {
-	return (this->datasize+5);
+	return (this->datasize+HEADERS_SIZE);
 }
 char * Packet::getRawData() {
-	return NULL;
+	char * tmp=new char[this->length+HEADERS_SIZE+1];
+	memset(tmp,0,this->length+HEADERS_SIZE+1);
+	sprintf(tmp,"%1hu%04u",this->code, this->length);
+	memcpy(tmp+HEADERS_SIZE, this->data, this->datasize);
+	return tmp;
 }
