@@ -1,12 +1,13 @@
 SHELL = /bin/sh
 CC    = g++
 
-CFLAGS       = -Wall  -Iinclude
+CPPFLAGS       = -Wall  -Iinclude
+CFLAGS		= $(CPPFLAGS)
 LDLIBS		 = 
 TARGET  = protocol
-SOURCES = $(shell echo src/*.cpp)
+SOURCES = $(shell echo src/*.cpp) test/sample.cpp
 HEADERS = $(shell echo include/*.h)
-OBJECTS = $(SOURCES:.c=.o)
+OBJECTS = $(SOURCES:.cpp=.o)
 DEBUGFLAGS = -g
  
 all: $(TARGET)
@@ -24,8 +25,8 @@ distclean: clean
  
 .SECONDEXPANSION:
  
-$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(CFLAGS) -MM $(OBJ:.o=.cpp) | sed s/.*://)))
-%.o: %.c $$($$@_DEPS)
+$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(CFLAGS)  -MM $(OBJ:.o=.cpp) | sed s/.*://)))
+%.o: %.cpp $$($$@_DEPS)
 	$(CC) $(CFLAGS) $(LDLIBS) -c -o $@ $<
   
  
