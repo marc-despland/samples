@@ -148,9 +148,62 @@ int main(int argc, char* argv[]) {
 	}
 	try {
 		cmd=new Command(99,"%04d %02d", 45, 12);
-		cout << "PASSED : Creating a command with an valid code size="<<cmd->getRawDataLength()<< " raw=" <<cmd->getRawData() << endl;
+		if (Command::isCommand(cmd) && cmd->command()==99) {
+			cout << "PASSED : Creating a command with an valid cmd code : "<<cmd->command()<< " size="<<cmd->getRawDataLength()<< " raw=" <<cmd->getRawData() << endl;
+		} else {
+			cout << "FAILED : Creating a command with an valid code size="<<cmd->getRawDataLength()<< " raw=" <<cmd->getRawData() << " not ready or not a command" << endl;
+		}
 	}catch (InvalidCmdCodeException &e) {
 		cout << "FAILED : Creating a command with an valid code - an exception was thrown" << endl;
 	}
+	
+	int p1,p2,result;
+	result=cmd->parameters("%04d %02d",&p1,&p2);
+	if (result==2 && p1==45 && p2==12) {
+		cout << "PASSED : Reading command parameters cmd="<<cmd->command()<< " result="<<result<<" p1="<<p1<< " p2="<< p2 <<endl;
+	}else {
+		cout << "FAIELD : Reading command parameters cmd="<<cmd->command()<< " result="<<result<<" p1="<<p1<< " p2="<< p2 <<endl;
+	}
+	
+	
+	try {
+		packet=new Packet();
+		buffer=new Buffer();
+		buffer->write(cmd->getRawData(),cmd->getRawDataLength());
+		ready=packet->readData(buffer);
+		if (ready && (buffer->size()==0)) {
+			cout << "PASSED : Read packet create from Command -  packet ready, "<< packet->getRawData()<<"("<<packet->getCode()<<","<<packet->getLength()<<") - return="<<ready<<" buffer="<<buffer->raw()<<" size="<<buffer->size()<< endl;
+		} else {
+			cout << "FAILED : Read packet create from Command ("<<packet->getCode()<<","<<packet->getLength()<<") - return "<<ready<<" buffer="<<buffer->raw()<<" size="<<buffer->size() << endl;
+		}
+			
+	}catch (PacketInvalidHeaderException &e) {
+		cout << "FAILED : Read packet create from Command , exception occurs" << endl;
+	}
+	if (Command::isCommand(packet)) {
+		cout << "PASSED : Created packet is a command ("<<packet->getCode()<<","<<packet->getLength()<<") "<< packet->getRawData() << endl;
+	} else {
+		cout << "FAILED : Created packet is not a command ("<<packet->getCode()<<","<<packet->getLength()<<") "<< packet->getRawData()<< endl;
+	}
+	try {
+		Command * cmd2=new Command(*packet);
+		if (cmd2->command()==99) {
+			cout << "PASSED : Creating a command from packet : "<<cmd->command()<< " size="<<cmd->getRawDataLength()<< " raw=" <<cmd->getRawData() << endl;
+		}
+	} catch (InvalidCommandException &e1) {
+		cout << "FAILED : Creating command from packet : InvalidCommandException occurs ("<<packet->getCode()<<","<<packet->getLength()<<") "<< packet->getRawData()<< endl;
+	}catch (PacketNotReadyException &e2) {
+		cout << "FAILED : Creating command from packet : PacketNotReadyException occurs ("<<packet->getCode()<<","<<packet->getLength()<<") "<< packet->getRawData()<< endl;
+	}catch (InvalidCmdCodeException &e3) {
+		cout << "FAILED : Creating command from packet : InvalidCmdCodeException occurs ("<<packet->getCode()<<","<<packet->getLength()<<") "<< packet->getRawData()<< endl;
+	}
+	result=p1=p2=0;
+	result=cmd->parameters("%04d %02d",&p1,&p2);
+	if (result==2 && p1==45 && p2==12) {
+		cout << "PASSED : Reading command parameters cmd="<<cmd->command()<< " result="<<result<<" p1="<<p1<< " p2="<< p2 <<endl;
+	}else {
+		cout << "FAIELD : Reading command parameters cmd="<<cmd->command()<< " result="<<result<<" p1="<<p1<< " p2="<< p2 <<endl;
+	}
+	
 	return 0;
 }

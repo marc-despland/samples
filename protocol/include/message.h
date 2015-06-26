@@ -30,7 +30,7 @@ class Message : public Packet {
 		Message(Packet packet) throw(InvalidMessageException);
 		string message();
 		
-		static bool isMessage(Packet packet);
+		static bool isMessage(Packet * packet);
 		static const unsigned short CODEMESSAGE=1;
 };
 #endif 

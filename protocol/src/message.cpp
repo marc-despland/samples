@@ -6,12 +6,10 @@ const char* InvalidMessageException::what() {
 	return "Packet not a valid message";
 }
 
-Message::Message():Packet() {
-	this->code=Message::CODEMESSAGE;
+Message::Message():Packet(Message::CODEMESSAGE) {
 }
 
-Message::Message(string str):Packet() {
-        this->code=Message::CODEMESSAGE;
+Message::Message(string str):Packet(Message::CODEMESSAGE) {
 	this->length=(unsigned int) str.length();
         this->datasize=this->length;
         this->data=new char[this->datasize];
@@ -19,8 +17,7 @@ Message::Message(string str):Packet() {
 }
 
 
-Message::Message(const char str[]):Packet() {
-        this->code=Message::CODEMESSAGE;
+Message::Message(const char str[]):Packet(Message::CODEMESSAGE) {
         this->length=(unsigned int) strlen(str);
         this->datasize=this->length;
         this->data=new char[this->datasize];
@@ -28,7 +25,7 @@ Message::Message(const char str[]):Packet() {
 }
 
 Message::Message(Packet packet) throw(InvalidMessageException):Packet(Message::CODEMESSAGE){
-	if (! Message::isMessage(packet)) {
+	if (! Message::isMessage(&packet)) {
 		throw  InvalidMessageException();
 	} else {
 		
@@ -46,7 +43,7 @@ string Message::message() {
 
 }
 
-bool Message::isMessage(Packet packet) {
-	return ((packet.getCode()==Message::CODEMESSAGE) && packet.isReady());
+bool Message::isMessage(Packet * packet) {
+	return ((packet->getCode()==Message::CODEMESSAGE) && packet->isReady());
 }
 
