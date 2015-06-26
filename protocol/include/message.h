@@ -28,8 +28,8 @@ class Message : public Packet {
 		Message(string str);
 		Message(const char str[]);
 		Message(Packet packet) throw(InvalidMessageException);
-		string message();
-		
+		char * message()throw (PacketNotReadyException);
+		long send(int fd) throw (PacketNotReadyException);;
 		static bool isMessage(Packet * packet);
 		static const unsigned short CODEMESSAGE=1;
 };

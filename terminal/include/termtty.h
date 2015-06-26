@@ -18,7 +18,8 @@ class TermTTY {
 		~TermTTY();
 		bool execute()  throw (TermTTYForkException);
 	protected:
-		Buffer * buffer;
+		Buffer * bufferin;
+		Buffer * bufferout;
 		int pid;
 		int terminalfd;
 		int input;

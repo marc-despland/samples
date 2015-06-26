@@ -47,7 +47,7 @@ class Packet {
 		 * @param size a pointer to the buffer size, could be modified by the function
 		 * @return true if the Packet is ready
 		 */
-		bool readData(Buffer * buffer) throw (PacketInvalidHeaderException);
+		bool readData(Buffer * buffer) throw (PacketInvalidHeaderException,PacketBufferSizeException);
 		/**
 		 * Return the code of the Packet
 		 */
@@ -72,6 +72,10 @@ class Packet {
 		 * Return the lenght of the raw data
 		 */
 		char * getRawData();
+		/**
+		 * Send the rawdata of the packet through the given fd
+		 */
+		long send(int fd) throw (PacketNotReadyException);
 		
 		static const unsigned short NOCODE=10;
 	protected:

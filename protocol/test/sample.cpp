@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
 			
 	}catch (PacketInvalidHeaderException &e) {
 		cout << "FAILED : Read to small header, exception occurs" << endl;
+	}catch (PacketBufferSizeException &e) {
+		cout << "PASSED : Read to small header ("<<packet->getCode()<<","<<packet->getLength()<<") , return false, nothing changed" << endl;
 	}
 		
 	try {

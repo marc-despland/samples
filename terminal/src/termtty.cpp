@@ -14,13 +14,16 @@
 #include "command.h"
 #include "message.h"
 
+#define BUFFERSIZE	1024
+
 const char* TermTTYForkException::what() {
 	return "Can't fork process to create tty";
 }
 
 
 TermTTY::TermTTY(int input, int output) {
-	this->buffer=new Buffer();
+	this->bufferin=new Buffer();
+	this->bufferout=new Buffer();
 	this->pid=-1;
 	this->started=false;
 	this->terminalfd=-1;
@@ -51,7 +54,7 @@ bool TermTTY::execute() throw (TermTTYForkException) {
 	sigset_t mask;
 	
 	
-	char buffer[100];
+	char buffer[BUFFERSIZE];
 	int count;
 	int status,pid;
 	
@@ -88,13 +91,15 @@ bool TermTTY::execute() throw (TermTTYForkException) {
 			if (result > 0) {
 				if (FD_ISSET(this->terminalfd, &readset)) {
 					//Child has write on its stdout
-					count = read(this->terminalfd, buffer, sizeof(buffer)-1);
+					count = read(this->terminalfd, buffer, BUFFERSIZE-1);
 					if (count >= 0) {
 						buffer[count]=0;
-						//message=context.encoder(buffer, &count);
-						if (message!=NULL) {
-							write(this->output, message, count);
-							free(message);
+						Message * out=new Message(buffer);
+						try {
+							out->send(this->output);
+							delete out;
+						}catch(PacketNotReadyException &e) {
+							//impossible
 						}
 					}
 				}
@@ -106,6 +111,31 @@ bool TermTTY::execute() throw (TermTTYForkException) {
 						if (message!=NULL) {
 							write(this->terminalfd, message, strlen(message));
 							free(message);
+							
+						/*bool somethingToRead=true;
+						while (bufferout->size()>0 && somethingToRead) {
+							
+							try {
+								ttyout->read(bufferout);
+							} catch(PacketInvalidHeaderException &e) {
+								bufferout=new Buffer();
+								ttyout->clear();
+							} catch(PacketBufferSizeException &e) {
+								somethingToRead=false;
+							}
+							if (ttyout->isReady()) {
+								if (Message::isMessage(ttyout)) {
+									try {
+										ttyout->send(this->output);
+										
+									}catch(PacketNotReadyException &e) {
+										//impossible
+									}
+									
+								}
+							}
+						}*/
+
 						}
 					}
 				}

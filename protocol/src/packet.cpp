@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <ctype.h>
+#include <unistd.h>
 
 #define CODE_PRECISION		1
 #define LENGTH_PRECISION	4
@@ -49,29 +50,23 @@ Packet::~Packet() {
 }
 
 
-bool Packet::readData(Buffer * buffer) throw (PacketInvalidHeaderException) {
+bool Packet::readData(Buffer * buffer) throw (PacketInvalidHeaderException,PacketBufferSizeException) {
 	if (this->code==Packet::NOCODE) {
-		try {
-			char * headers=buffer->read(HEADERS_SIZE);
-			bool isnumber=true;
-			for (int i=0;i<HEADERS_SIZE;i++) isnumber=isnumber && isdigit(headers[i]);
-			if (!isnumber) {
-				//We have an invalid packet
-				throw PacketInvalidHeaderException();
-			}
-			int res=sscanf(headers,"%1hu%4u",&(this->code), &(this->length));
-			delete headers;
-			if (res!=2) {
-				//We have an invalid packet
-				throw PacketInvalidHeaderException();
-			}
-			this->data=new char[this->length+1];
-			memset(this->data,0,this->length+1);
-		} catch(PacketBufferSizeException &e) {
-			//there is no enought data on buffer to read packet headers. 
-			//we keep buffer unchange
-			return false;
+		char * headers=buffer->read(HEADERS_SIZE);
+		bool isnumber=true;
+		for (int i=0;i<HEADERS_SIZE;i++) isnumber=isnumber && isdigit(headers[i]);
+		if (!isnumber) {
+			//We have an invalid packet
+			throw PacketInvalidHeaderException();
 		}
+		int res=sscanf(headers,"%1hu%4u",&(this->code), &(this->length));
+		delete headers;
+		if (res!=2) {
+			//We have an invalid packet
+			throw PacketInvalidHeaderException();
+		}
+		this->data=new char[this->length+1];
+		memset(this->data,0,this->length+1);
 	}
 	//So here we have a valid code and length
 	unsigned int toread=this->length-this->datasize;
@@ -111,4 +106,17 @@ char * Packet::getRawData() {
 	sprintf(tmp,"%1hu%04u",this->code, this->length);
 	memcpy(tmp+HEADERS_SIZE, this->data, this->datasize);
 	return tmp;
+}
+
+long Packet::send(int fd) throw (PacketNotReadyException){
+	long size=0;
+	if (!this->isReady()) throw PacketNotReadyException();
+	if (this->data==NULL) return 0;
+	char * tmp=new char[HEADERS_SIZE+1];
+	memset(tmp,0,HEADERS_SIZE+1);
+	sprintf(tmp,"%1hu%04u",this->code, this->length);
+	size=write(fd, tmp, strlen(tmp));
+	size+=write(fd,this->data,this->datasize);
+	delete tmp;
+	return size;
 }

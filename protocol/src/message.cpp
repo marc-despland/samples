@@ -37,11 +37,16 @@ Message::Message(Packet packet) throw(InvalidMessageException):Packet(Message::C
 	}
 }
 
-string Message::message() {
+char * Message::message() throw (PacketNotReadyException){
+	if (!this->isReady()) throw PacketNotReadyException();
 	if (this->data==NULL) return "";
-	return this->data;
+	char * tmp=new char[this->getLength()+1];
+	tmp[this->getLength()]=0;
+	memcpy((void *) tmp, this->data, this->datasize);
+	return tmp;
 
 }
+
 
 bool Message::isMessage(Packet * packet) {
 	return ((packet->getCode()==Message::CODEMESSAGE) && packet->isReady());
