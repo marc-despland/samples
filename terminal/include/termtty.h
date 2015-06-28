@@ -3,29 +3,29 @@
 using namespace std;
 #include <exception>
 #include "buffer.h"
+#include "packet.h"
 #include <unistd.h>
 #include <termios.h>
-
+#include "forkpty.h"
+#include "encoder.h"
+#include "command.h"
 
 class TermTTYForkException : public exception {
 	const char* what();
 };
 
 
-class TermTTY {
+class TermTTY :  public ForkPty, public Encoder {
 	public:
 		TermTTY(int input, int output);
 		~TermTTY();
-		bool execute()  throw (TermTTYForkException);
+		bool terminal();
 	protected:
-		Buffer * bufferin;
-		Buffer * bufferout;
-		int pid;
-		int terminalfd;
-		int input;
-		int output;
-		bool started;
+		void executecmd(Command * cmd);
 		struct termios inputopt;
+		Command * quit;
+		void child();
+		void parent();
 };
 
 

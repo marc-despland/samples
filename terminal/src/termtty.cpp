@@ -15,145 +15,73 @@
 #include "message.h"
 
 #define BUFFERSIZE	1024
+#define TERMINALBUFFERSIZE	256
 
 const char* TermTTYForkException::what() {
 	return "Can't fork process to create tty";
 }
 
 
-TermTTY::TermTTY(int input, int output) {
-	this->bufferin=new Buffer();
-	this->bufferout=new Buffer();
-	this->pid=-1;
-	this->started=false;
-	this->terminalfd=-1;
-	this->input=input;
-	this->output=output;
-	
+TermTTY::TermTTY(int input, int output):ForkPty(),Encoder() {
+	this->setEncodedFd(input, output);
 	struct termios ttystate;
 
 	// Backup intial TTY mode of input fd
-	tcgetattr(this->input, &(this->inputopt));
+	tcgetattr(input, &(this->inputopt));
 
 	// Update input mode to remove ECHO and ICANON to allow transmission of character without buffering and echo
-	tcgetattr(this->input, &ttystate);
+	tcgetattr(input, &ttystate);
 	ttystate.c_lflag &= ~ICANON;
 	ttystate.c_lflag &= ~ECHO;
 	ttystate.c_cc[VMIN] = 1;
-	tcsetattr(this->input, TCSANOW, &ttystate);
+	tcsetattr(input, TCSANOW, &ttystate);
+	quit=NULL;
+	try {
+		quit=new Command(2,"");
+	}catch(InvalidCmdCodeException &e) {
+		//impossible
+	}
 }
 
 
-TermTTY::~TermTTY() {
-	tcsetattr(this->input, TCSANOW, &(this->inputopt));
+TermTTY::~TermTTY(){
+	tcsetattr(this->encodedin, TCSANOW, &(this->inputopt));
+	if (quit!=NULL) delete this->quit;
 }
 
-bool TermTTY::execute() throw (TermTTYForkException) {
-	fd_set readset;
-	int result;
-	sigset_t mask;
-	
-	
-	char buffer[BUFFERSIZE];
-	int count;
-	int status,pid;
-	
-	char * message;
-	
-	//Define the sigmask  to catch SIGCHLD with pselect
-	sigemptyset (&mask);
-	sigaddset (&mask, SIGCHLD);
-
-	//Create the fork PTY to manage our shell
-	this->pid = forkpty(&(this->terminalfd), NULL, NULL, NULL);
-	if (this->pid==-1) throw TermTTYForkException();
-	
-	if (this->pid == 0) {
-		//here we are the child process
-		 char *argv[]={ "/bin/bash","--login", 0};
-		execv(argv[0], argv);
-		//child process ends here
-	} else {
-	
-		//Initialize the flag to signal child is alive
-		this->started=true;
-	
-		do {
-			//initialize file descriptor mask for select
-			FD_ZERO(&readset);
-			FD_SET(this->input, &readset);
-			FD_SET(this->terminalfd, &readset);
-		
-		
-			//Block until something to read on child stdout, parent stdin or SIGCHLD
-			result = pselect(max(this->terminalfd, this->input), &readset, NULL, NULL, NULL, &mask);
-			
-			if (result > 0) {
-				if (FD_ISSET(this->terminalfd, &readset)) {
-					//Child has write on its stdout
-					count = read(this->terminalfd, buffer, BUFFERSIZE-1);
-					if (count >= 0) {
-						buffer[count]=0;
-						Message * out=new Message(buffer);
-						try {
-							out->send(this->output);
-							delete out;
-						}catch(PacketNotReadyException &e) {
-							//impossible
-						}
-					}
-				}
-				if (FD_ISSET(this->input, &readset)) {
-					//User has write some stuff
-					count = read(this->input, buffer, sizeof(buffer)-1);
-					if (count >= 0) {
-						//message=context.decoder(buffer,count);
-						if (message!=NULL) {
-							write(this->terminalfd, message, strlen(message));
-							free(message);
-							
-						/*bool somethingToRead=true;
-						while (bufferout->size()>0 && somethingToRead) {
-							
-							try {
-								ttyout->read(bufferout);
-							} catch(PacketInvalidHeaderException &e) {
-								bufferout=new Buffer();
-								ttyout->clear();
-							} catch(PacketBufferSizeException &e) {
-								somethingToRead=false;
-							}
-							if (ttyout->isReady()) {
-								if (Message::isMessage(ttyout)) {
-									try {
-										ttyout->send(this->output);
-										
-									}catch(PacketNotReadyException &e) {
-										//impossible
-									}
-									
-								}
-							}
-						}*/
-
-						}
-					}
-				}
-			} else {
-				if (errno==EINTR) {
-					//Signal SIGCHLD has been caught 
-					//Terminal is closed
-					//wait for one child process ends
-					pid=wait(&status);
-					if (pid==this->pid) {
-						this->started=false;
-					}
-				} else {
-					//an error occurs, we quit 
-					this->started=false;
-				}
-			}
-		} while (this->started);
+bool TermTTY::terminal(){
+	try {
+		this->execute();
+		this->quit->send(this->encodedout);
+	} catch(ForkPtyException &e) {
+		return false;
 	}
 	return true;
 }
+
+
+
+void TermTTY::child() {
+	char *argv[]={ "/bin/bash","--login", 0};
+	execv(argv[0], argv);
+}
+
+
+
+void TermTTY::parent() {
+	this->setClearFd(this->ptyfd,this->ptyfd);
+	this->encode();	
+}
+
+
+
+void TermTTY::executecmd(Command * cmd) {
+	switch (cmd->command()) {
+		case 1: //resizeTTY
+			struct winsize termsize;//ws_row ws_col
+			cmd->parameters("%06u %06u",&(termsize.ws_row),&(termsize.ws_col));
+			ioctl(this->ptyfd,TIOCSWINSZ,&termsize);
+		break;
+	}
+}
+
