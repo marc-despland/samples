@@ -1,6 +1,7 @@
 #include "message.h"
 #include <string.h>
-
+#include <stdio.h>
+#include <unistd.h>
 
 const char* InvalidMessageException::what() {
 	return "Packet not a valid message";
@@ -47,6 +48,14 @@ char * Message::message() throw (PacketNotReadyException){
 
 }
 
+
+long Message::sendmsg(int fd) throw (PacketNotReadyException){
+	long size=0;
+	if (!this->isReady()) throw PacketNotReadyException();
+	if (this->data==NULL) return 0;
+	size=write(fd,this->data,this->datasize);
+	return size;
+}
 
 bool Message::isMessage(Packet * packet) {
 	return ((packet->getCode()==Message::CODEMESSAGE) && packet->isReady());

@@ -13,6 +13,7 @@
 #include <string.h>
 #include "command.h"
 #include "message.h"
+#include <iostream>
 
 #define BUFFERSIZE	1024
 #define TERMINALBUFFERSIZE	256
@@ -25,6 +26,12 @@ const char* TermTTYForkException::what() {
 TermTTY::TermTTY(int input, int output):ForkPty(),Encoder() {
 	this->setEncodedFd(input, output);
 	struct termios ttystate;
+	this->mask=new sigset_t();
+	
+	//Define the sigmask  to catch SIGCHLD with pselect
+	sigemptyset (this->mask);
+	sigaddset (this->mask, SIGCHLD);
+
 
 	// Backup intial TTY mode of input fd
 	tcgetattr(input, &(this->inputopt));
@@ -62,15 +69,19 @@ bool TermTTY::terminal(){
 
 
 void TermTTY::child() {
+	cout << "start TermTTY child " << endl;
 	char *argv[]={ "/bin/bash","--login", 0};
 	execv(argv[0], argv);
+	cout << "stop TermTTY child " << endl;
 }
 
 
 
 void TermTTY::parent() {
+	cout << "start TermTTY parent " << endl;
 	this->setClearFd(this->ptyfd,this->ptyfd);
 	this->encode();	
+	cout << "stop TermTTY parent " << endl;
 }
 
 

@@ -24,6 +24,7 @@ class Buffer {
 		char * read(unsigned int size) throw(PacketBufferSizeException);
 		void write(const char * data, unsigned int size);
 		char * raw();
+		void clear();
 
 	protected:
 		char * data;

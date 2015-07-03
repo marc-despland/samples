@@ -77,6 +77,8 @@ class Packet {
 		 */
 		long send(int fd) throw (PacketNotReadyException);
 		
+		void clear();
+		
 		static const unsigned short NOCODE=10;
 	protected:
 		unsigned short code;

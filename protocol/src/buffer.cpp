@@ -22,6 +22,14 @@ Buffer::Buffer() {
 	this->data=NULL;
 }
 
+void Buffer::clear() {
+	this->datasize=0;
+	this->allocated=0;
+	if (this->data!=NULL) free(this->data);
+	this->data=NULL;
+}
+
+
 Buffer::~Buffer() {
 	if (this->data!=NULL) free(this->data);
 }

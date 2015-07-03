@@ -45,6 +45,14 @@ Packet::Packet(unsigned short code, char * data, unsigned int size) {
 	memcpy(this->data, data, size);
 }
 
+void Packet::clear() {
+	if (this->data!=NULL) delete this->data;
+	this->code=Packet::NOCODE;
+	this->length=0;
+	this->datasize=0;
+	this->data=NULL;
+}
+
 Packet::~Packet() {
 	if (this->data!=NULL) delete this->data;
 }
