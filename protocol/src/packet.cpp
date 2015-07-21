@@ -46,7 +46,9 @@ Packet::Packet(unsigned short code, char * data, unsigned int size) {
 }
 
 void Packet::clear() {
-	if (this->data!=NULL) delete this->data;
+	if (this->data!=NULL) {
+		delete[] this->data;
+	}
 	this->code=Packet::NOCODE;
 	this->length=0;
 	this->datasize=0;
@@ -74,6 +76,7 @@ bool Packet::readData(Buffer * buffer) throw (PacketInvalidHeaderException,Packe
 			throw PacketInvalidHeaderException();
 		}
 		this->data=new char[this->length+1];
+		this->datasize=0;
 		memset(this->data,0,this->length+1);
 	}
 	//So here we have a valid code and length

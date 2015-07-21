@@ -25,16 +25,16 @@ Message::Message(const char str[]):Packet(Message::CODEMESSAGE) {
         memcpy((void *) this->data, (const void *)str, this->datasize);
 }
 
-Message::Message(Packet packet) throw(InvalidMessageException):Packet(Message::CODEMESSAGE){
-	if (! Message::isMessage(&packet)) {
+Message::Message(Packet * packet) throw(InvalidMessageException):Packet(Message::CODEMESSAGE){
+	if (! Message::isMessage(packet)) {
 		throw  InvalidMessageException();
 	} else {
 		
-		this->length=packet.getLength();
-		this->datasize=packet.getLength();
+		this->length=packet->getLength();
+		this->datasize=packet->getLength();
 		this->data=new char[this->datasize+1];
 		this->data[this->datasize]=0;
-		memcpy((void *) this->data, packet.getData(), this->datasize);
+		memcpy((void *) this->data, packet->getData(), this->datasize);
 	}
 }
 

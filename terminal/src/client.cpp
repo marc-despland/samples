@@ -1,6 +1,7 @@
 #include "client.h"
 #include "command.h"
 #include <sys/ioctl.h>
+#include <iostream>
 
 vector<Client *> Client::list;
 
@@ -15,7 +16,7 @@ static void received_SIGWINCH(int sig) {
 
 
 
-Client::Client(int clin, int clout, int termin, int termout):Encoder() {
+Client::Client(int clin, int clout, int termin, int termout):Encoder("Client") {
 	this->setClearFd(clin, clout);
 	this->setEncodedFd(termin, termout);
 	
@@ -68,7 +69,7 @@ void Client::resizetty() {
 	ioctl(this->clearout,TIOCGWINSZ,&termsize);
 	try {
 		Command cmd(1,"%06u %06u",termsize.ws_row,termsize.ws_col);
-		cmd.send(this->encodedin);
+		cmd.send(this->encodedout);
 	}catch(InvalidCmdCodeException &e) {
 		//impossible
 	}

@@ -1,6 +1,7 @@
 #include "forkpty.h"
 #include <sys/wait.h>
 #include <pty.h>
+#include <iostream>
 
 map<pid_t, ForkPty *>	ForkPty::processlist;
 
@@ -29,6 +30,7 @@ ForkPty::~ForkPty() {
 
  
 void ForkPty::execute() throw (ForkPtyException) {
+	cout << "ForkPty execute " << endl;
 	if((this->childpid = forkpty(&(this->ptyfd),NULL,NULL,NULL)) == -1) throw ForkPtyException();
 	if(this->childpid == 0) {
 		this->child();

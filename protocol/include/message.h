@@ -27,7 +27,7 @@ class Message : public Packet {
 		Message();
 		Message(string str);
 		Message(const char str[]);
-		Message(Packet packet) throw(InvalidMessageException);
+		Message(Packet * packet) throw(InvalidMessageException);
 		char * message()throw (PacketNotReadyException);
 		long sendmsg(int fd) throw (PacketNotReadyException);
 		static bool isMessage(Packet * packet);

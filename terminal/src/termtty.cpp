@@ -23,7 +23,7 @@ const char* TermTTYForkException::what() {
 }
 
 
-TermTTY::TermTTY(int input, int output):ForkPty(),Encoder() {
+TermTTY::TermTTY(int input, int output):ForkPty(),Encoder("Server") {
 	this->setEncodedFd(input, output);
 	struct termios ttystate;
 	this->mask=new sigset_t();
@@ -57,6 +57,7 @@ TermTTY::~TermTTY(){
 }
 
 bool TermTTY::terminal(){
+	cout << "TermTTY terminal " << endl;
 	try {
 		this->execute();
 		this->quit->send(this->encodedout);
@@ -87,6 +88,7 @@ void TermTTY::parent() {
 
 
 void TermTTY::executecmd(Command * cmd) {
+	cout << "TermTTY executecmd " << endl;
 	switch (cmd->command()) {
 		case 1: //resizeTTY
 			struct winsize termsize;//ws_row ws_col

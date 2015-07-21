@@ -18,7 +18,7 @@ class Encoder : public virtual Runnable {
 		 *	clearin 	->	encodedout
 		 *	encodedin	->	clearout
 		 */
-		Encoder();
+		Encoder(string name);
 		~Encoder();
 		void setMask(sigset_t * mask);
 		void setClearFd(int clearin, int clearout);
@@ -30,6 +30,7 @@ class Encoder : public virtual Runnable {
 		virtual void executecmd(Command * cmd)=0;
 
 	protected:
+		string name;
 		Buffer * 	bufferencoded;
 		Packet *	packet;
 		int clearin;

@@ -38,14 +38,14 @@ Command::Command(unsigned int cmd, const char * format, ...) throw(InvalidCmdCod
 	memcpy((void *) (this->data+CMDPRECISION), tmp, strlen(tmp));
 }
 
-Command::Command(Packet packet) throw(InvalidCommandException, PacketNotReadyException, InvalidCmdCodeException):Packet(Command::CODECOMMAND){
-	if (! Command::isCommand(&packet)) 	throw  InvalidCommandException();
-	if (! packet.isReady()) 		throw  PacketNotReadyException();
-	if (packet.getLength()<CMDPRECISION) 	throw InvalidCmdCodeException();
+Command::Command(Packet * packet) throw(InvalidCommandException, PacketNotReadyException, InvalidCmdCodeException):Packet(Command::CODECOMMAND){
+	if (! Command::isCommand(packet)) 	throw  InvalidCommandException();
+	if (! packet->isReady()) 		throw  PacketNotReadyException();
+	if (packet->getLength()<CMDPRECISION) 	throw InvalidCmdCodeException();
 	
 	char tmp[CMDPRECISION+1];
 	tmp[CMDPRECISION]=0;
-	memcpy((void *) tmp, packet.getData(), CMDPRECISION);
+	memcpy((void *) tmp, packet->getData(), CMDPRECISION);
 	bool isnumber=true;
 	for (int i=0;i<CMDPRECISION;i++) isnumber=isnumber && isdigit(tmp[i]);
 	if (!isnumber) 				throw InvalidCmdCodeException();
@@ -53,11 +53,11 @@ Command::Command(Packet packet) throw(InvalidCommandException, PacketNotReadyExc
 	int result=sscanf(tmp,CMDFORMAT,&(this->cmd));
 	if (result!=1) 				throw InvalidCmdCodeException();
 	
-	this->length=packet.getLength();
-	this->datasize=packet.getLength();
+	this->length=packet->getLength();
+	this->datasize=packet->getLength();
 	this->data=new char[this->datasize+1];
 	this->data[this->datasize]=0;
-	memcpy((void *) this->data, packet.getData(), this->datasize);	
+	memcpy((void *) this->data, packet->getData(), this->datasize);	
 }
 
 unsigned int Command::command() {

@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 CC    = g++
 
-CPPFLAGS       = -Wall -Iinclude -I../protocol/include
+CPPFLAGS       = -g -Wall -Iinclude -I../protocol/include
 CFLAGS       = $(CPPFLAGS) 
 LDLIBS		 = -lutil 
 TARGET  = sampletty

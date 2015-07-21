@@ -1,5 +1,5 @@
 #include "runnable.h"
-
+#include <iostream>
 
 Runnable::Runnable() {
 	this->flag=false;

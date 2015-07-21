@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 	
 	
 	try {
-		Message * msg2=new Message(*packet);
+		Message * msg2=new Message(packet);
 		if (msg2->isReady() && (msg2->getLength()==19)) {
 			cout << "PASSED : Create Message from Packet length=" << msg2->getLength() << " code="<<msg2->getCode() << endl;
 		} else {
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
 		cout << "FAILED : Created packet is not a command ("<<packet->getCode()<<","<<packet->getLength()<<") "<< packet->getRawData()<< endl;
 	}
 	try {
-		Command * cmd2=new Command(*packet);
+		Command * cmd2=new Command(packet);
 		if (cmd2->command()==99) {
 			cout << "PASSED : Creating a command from packet : "<<cmd->command()<< " size="<<cmd->getRawDataLength()<< " raw=" <<cmd->getRawData() << endl;
 		}

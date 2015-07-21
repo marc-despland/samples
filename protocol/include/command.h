@@ -28,7 +28,7 @@ class Command : public Packet {
 		 */
 		Command();
 		Command(unsigned int code, const char * format, ...) throw(InvalidCmdCodeException);
-		Command(Packet packet) throw(InvalidCommandException, PacketNotReadyException, InvalidCmdCodeException);
+		Command(Packet * packet) throw(InvalidCommandException, PacketNotReadyException, InvalidCmdCodeException);
 		
 		unsigned int command();
 		int parameters(const char * format, ...);

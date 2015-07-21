@@ -18,8 +18,11 @@ class Sample:public Fork {
 Sample::Sample() {
 	pipe(this->c2t);
 	pipe(this->t2c);
-	this->terminal=new TermTTY(this->c2t[1],this->t2c[0]);
-	this->client=new Client(STDIN_FILENO, STDOUT_FILENO, this->c2t[0], this->t2c[1]);
+	cout << "TermTTY : " << this->c2t[1] << ", " << this->t2c[0]<< endl;
+	cout << "Client : " << this->t2c[1] << ", " << this->c2t[0]<< endl;
+	
+	this->terminal=new TermTTY(this->c2t[0],this->t2c[1]);
+	this->client=new Client(STDIN_FILENO, STDOUT_FILENO,this->t2c[0], this->c2t[1]);
 }
 
 void Sample::child() {

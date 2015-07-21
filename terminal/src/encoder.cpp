@@ -4,16 +4,18 @@
 #include <errno.h>
 #include <algorithm>
 #include <string.h>
- #include <unistd.h>
+#include <unistd.h>
+#include <iostream>
 
 #define BUFFERSIZE	256
 
 
-Encoder::Encoder():Runnable(){
+Encoder::Encoder(string name):Runnable(){
 	this->clearin=-1;
 	this->clearout=-1;
 	this->encodedin=-1;
 	this->encodedout=-1;
+	this->name=name;
 }
 
 void Encoder::setMask(sigset_t * mask) {
@@ -53,7 +55,6 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 		FD_SET(this->encodedin, &readset);		
 		
 		result = pselect(max(this->clearin, this->encodedin)+1, &readset, NULL, NULL, NULL, this->mask);
-			
 		if (result > 0) {
 			if (FD_ISSET(this->encodedin, &readset)) {
 				this->readencoded();
@@ -96,6 +97,7 @@ void Encoder::readencoded() {
 	count = read(this->encodedin, buffer, BUFFERSIZE-1);
 	if (count >= 0) {
 		bool somethingToRead=true;
+		this->bufferencoded->write(buffer, count);
 		while (this->bufferencoded->size()>0 && somethingToRead) {
 			try {
 				this->packet->readData(this->bufferencoded);
@@ -109,7 +111,7 @@ void Encoder::readencoded() {
 				switch(this->packet->getCode()) {
 					case Message::CODEMESSAGE:
 						try {
-							Message * msg=new Message(*(this->packet));
+							Message * msg=new Message(this->packet);
 							msg->sendmsg(this->clearout);
 							this->packet->clear();
 							delete msg;
@@ -121,7 +123,7 @@ void Encoder::readencoded() {
 					break;
 					case Command::CODECOMMAND:
 						try {
-							Command * cmd=new Command(*(this->packet));
+							Command * cmd=new Command(this->packet);
 							this->executecmd(cmd);
 							this->packet->clear();
 							delete cmd;
@@ -138,7 +140,6 @@ void Encoder::readencoded() {
 
 		}
 	}
-
 }
 
 
