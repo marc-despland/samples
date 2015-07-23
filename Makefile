@@ -1,17 +1,41 @@
+SHELL = /bin/sh
+CC    = g++
 
-all:	tcpserver tcpclient terminal options
+CPPFLAGS       = -g -Wall -Iinclude
+CFLAGS       = $(CPPFLAGS) 
+LDLIBS		 = -lutil 
+TARGET  = terminal protocol options
+SOURCES = $(shell echo src/*.cpp)
+HEADERS = $(shell echo include/*.h)
+OBJECTS = $(SOURCES:.cpp=.o)
+DEBUGFLAGS = -g
+ 
+all: $(TARGET)
+ 
+terminal: $(OBJECTS) main/terminal.o $(HEADERS)
+	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
 
-tcpserver:
-	make -C tcpserver 
+protocol: $(OBJECTS) main/protocol.o $(HEADERS)
+	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o 
 
-tcpclient:
-	make -C tcpclient
-
-terminal:
-	make -C terminal
-
-options:
-	make -C options
+options: $(OBJECTS) main/options.o $(HEADERS)
+	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o 
 
 
-.PHONY: tcpserver tcpclient terminal options
+clean:
+	-rm -f $(OBJECTS)
+	-rm -f gmon.out
+	-rm -f main/*.o
+ 
+distclean: clean
+	-rm -f $(TARGET)
+ 
+ 
+.SECONDEXPANSION:
+ 
+$(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(CFLAGS) -MM $(OBJ:.o=.cpp) | sed s/.*://)))
+%.o: %.cpp $$($$@_DEPS)
+	$(CC) $(CFLAGS) $(LDLIBS) -c -o $@ $<
+  
+ 
+.PHONY : all install uninstall clean distclean
