@@ -22,7 +22,10 @@ Sample::Sample() {
 	cout << "Client : " << this->t2c[1] << ", " << this->c2t[0]<< endl;
 	
 	this->terminal=new TermTTY(this->c2t[0],this->t2c[1]);
-	this->client=new Client(STDIN_FILENO, STDOUT_FILENO,this->t2c[0], this->c2t[1]);
+	//this->client=new Client(STDIN_FILENO, STDOUT_FILENO,this->t2c[0], this->c2t[1]);
+	this->client=new Client();
+	this->client->setClearFd(STDIN_FILENO, STDOUT_FILENO);
+	this->client->setEncodedFd(this->t2c[0], this->c2t[1]);
 }
 
 void Sample::child() {

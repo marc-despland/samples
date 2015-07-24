@@ -14,9 +14,22 @@ static void received_SIGWINCH(int sig) {
 	}
 }
 
+void Client::setClearFd(int clearin, int clearout) {
+	struct termios ttystate;
 
+	// Backup intial TTY mode of input fd
+	tcgetattr(clearin, &(this->inputopt));
 
-Client::Client(int clin, int clout, int termin, int termout):Encoder("Client") {
+	// Update input mode to remove ECHO and ICANON to allow transmission of character without buffering and echo
+	tcgetattr(clearin, &ttystate);
+	ttystate.c_lflag &= ~ICANON;
+	ttystate.c_lflag &= ~ECHO;
+	ttystate.c_cc[VMIN] = 1;
+	tcsetattr(clearin, TCSANOW, &ttystate);
+	Encoder::setClearFd(clearin, clearout);
+}
+
+/*Client::Client(int clin, int clout, int termin, int termout):Encoder("Client") {
 	this->setClearFd(clin, clout);
 	this->setEncodedFd(termin, termout);
 	
@@ -30,8 +43,9 @@ Client::Client(int clin, int clout, int termin, int termout):Encoder("Client") {
 	ttystate.c_lflag &= ~ICANON;
 	ttystate.c_lflag &= ~ECHO;
 	ttystate.c_cc[VMIN] = 1;
-	tcsetattr(clin, TCSANOW, &ttystate);
+	tcsetattr(clin, TCSANOW, &ttystate);*/
 	
+Client::Client():Encoder("Client") {
 	this->mask=new sigset_t();
 	//Define the sigmask  to catch SIGWINCH with pselect
 	sigemptyset (this->mask);
@@ -51,7 +65,7 @@ Client::Client(int clin, int clout, int termin, int termout):Encoder("Client") {
 }
 
 Client::~Client() {
-	tcsetattr(this->encodedin, TCSANOW, &(this->inputopt));
+	if (this->clearin>=0) tcsetattr(this->clearin, TCSANOW, &(this->inputopt));
 	Client::list.erase (Client::list.begin()+this->index);
 	delete this->eventWindowResize;
 }

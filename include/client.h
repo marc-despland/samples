@@ -9,8 +9,10 @@ using namespace std;
 
 class Client:public Encoder {
 	public:
-		Client(int clin, int clout, int termin, int termout);
+		//Client(int clin, int clout, int termin, int termout);
+		Client();
 		~Client();
+		void setClearFd(int clearin, int clearout);
 		void executecmd(Command * cmd);
 		void resizetty();
 		static vector<Client *> list;

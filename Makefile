@@ -4,7 +4,7 @@ CC    = g++
 CPPFLAGS       = -g -Wall -Iinclude
 CFLAGS       = $(CPPFLAGS) 
 LDLIBS		 = -lutil 
-TARGET  = terminal protocol options
+TARGET  = terminal protocol options tcpclient tcpservertty
 SOURCES = $(shell echo src/*.cpp)
 HEADERS = $(shell echo include/*.h)
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -21,6 +21,11 @@ protocol: $(OBJECTS) main/protocol.o $(HEADERS)
 options: $(OBJECTS) main/options.o $(HEADERS)
 	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o 
 
+tcpclient: $(OBJECTS) main/tcpclient.o $(HEADERS)
+	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o 
+
+tcpservertty: $(OBJECTS) main/tcpservertty.o $(HEADERS)
+	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
 
 clean:
 	-rm -f $(OBJECTS)

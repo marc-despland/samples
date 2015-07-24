@@ -16,6 +16,8 @@ Encoder::Encoder(string name):Runnable(){
 	this->encodedin=-1;
 	this->encodedout=-1;
 	this->name=name;
+	this->bufferencoded=NULL;
+	this->packet=NULL;
 }
 
 void Encoder::setMask(sigset_t * mask) {
@@ -33,8 +35,8 @@ void Encoder::setEncodedFd(int encodedin, int encodedout) {
 }
 
 Encoder::~Encoder(){
-	delete this->bufferencoded;
-	delete this->packet;
+	if (this->bufferencoded!=NULL) delete this->bufferencoded;
+	if (this->packet!=NULL) delete this->packet;
 }
 
 void Encoder::encode() throw (EncoderInvalidFdException){

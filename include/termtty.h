@@ -18,7 +18,7 @@ class TermTTYForkException : public exception {
 class TermTTY :  public ForkPty, public Encoder {
 	public:
 		TermTTY(int input, int output);
-		~TermTTY();
+		virtual ~TermTTY();
 		bool terminal();
 	protected:
 		void executecmd(Command * cmd);
