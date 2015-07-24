@@ -14,7 +14,7 @@ class ForkPtyException : public exception {
 class ForkPty :public virtual Runnable{
 	public :
 		ForkPty();
-		~ForkPty();
+		virtual ~ForkPty();
 		void execute() throw (ForkPtyException);
 		static map<pid_t, ForkPty *>	processlist;
 	protected:

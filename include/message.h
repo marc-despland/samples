@@ -28,6 +28,7 @@ class Message : public Packet {
 		Message(string str);
 		Message(const char str[]);
 		Message(Packet * packet) throw(InvalidMessageException);
+		virtual ~Message();
 		char * message()throw (PacketNotReadyException);
 		long sendmsg(int fd) throw (PacketNotReadyException);
 		static bool isMessage(Packet * packet);

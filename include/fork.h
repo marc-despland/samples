@@ -14,7 +14,7 @@ class ForkException : public exception {
 class Fork :public virtual Runnable{
 	public :
 		Fork();
-		~Fork();
+		virtual ~Fork();
 		void execute() throw (ForkException);
 		static map<pid_t, Fork *>	processlist;
 	protected:

@@ -21,13 +21,14 @@ class MyOptions : public Options {
 
 int main(int argc, char **argv) {
 	MyOptions options;
-	TcpClient client;
+	TcpClient * client=new TcpClient();
 	
 	try {
 		options.parse(argc, argv);
-		client.setClearFd(STDIN_FILENO, STDOUT_FILENO);
-		client.start(options.server->stringValue(), options.port->intValue());
+		client->setClearFd(STDIN_FILENO, STDOUT_FILENO);
+		client->start(options.server->stringValue(), options.port->intValue());
 		
 	} catch (OptionsStopException e) {
 	}
+	delete client;
 }

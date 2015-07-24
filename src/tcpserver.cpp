@@ -15,6 +15,9 @@ extern "C" int listen(int sockfd, int backlog);
 TcpServer::TcpServer(TcpServerAction * action):Runnable() {
 	this->action=action;
 }
+TcpServer::~TcpServer() {
+
+}
 
 void TcpServer::connectionClosed(int socket) {
 	cout << "Received ConnectionClosed from " << socket << endl;

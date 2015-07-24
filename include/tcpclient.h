@@ -15,7 +15,7 @@ class CantConnectException : public exception {
 class TcpClient:public Client {
 	public:
 		TcpClient();
-		~TcpClient();
+		virtual ~TcpClient();
 	 	void start(char * server, int port) throw(CantConnectException);
 	protected:
 		char * server;

@@ -19,7 +19,7 @@ class Encoder : public virtual Runnable {
 		 *	encodedin	->	clearout
 		 */
 		Encoder(string name);
-		~Encoder();
+		virtual ~Encoder();
 		void setMask(sigset_t * mask);
 		void setClearFd(int clearin, int clearout);
 		void setEncodedFd(int encodedin, int encodedout);

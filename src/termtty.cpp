@@ -57,7 +57,6 @@ TermTTY::~TermTTY(){
 }
 
 bool TermTTY::terminal(){
-	cout << "TermTTY terminal " << endl;
 	try {
 		this->execute();
 		this->quit->send(this->encodedout);
@@ -70,30 +69,29 @@ bool TermTTY::terminal(){
 
 
 void TermTTY::child() {
-	cout << "start TermTTY child " << endl;
 	char *argv[]={ "/bin/bash","--login", 0};
 	execv(argv[0], argv);
-	cout << "stop TermTTY child " << endl;
 }
 
 
 
 void TermTTY::parent() {
-	cout << "start TermTTY parent " << endl;
 	this->setClearFd(this->ptyfd,this->ptyfd);
 	this->encode();	
-	cout << "stop TermTTY parent " << endl;
 }
 
 
 
 void TermTTY::executecmd(Command * cmd) {
-	cout << "TermTTY executecmd " << endl;
+	cout << "TermTTY executecmd " << cmd->command()<< endl;
 	switch (cmd->command()) {
 		case 1: //resizeTTY
 			struct winsize termsize;//ws_row ws_col
 			cmd->parameters("%06u %06u",&(termsize.ws_row),&(termsize.ws_col));
 			ioctl(this->ptyfd,TIOCSWINSZ,&termsize);
+		break;
+		case 2: //quit
+			this->stop();
 		break;
 	}
 }

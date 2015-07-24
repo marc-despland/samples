@@ -9,11 +9,13 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <iostream>
 
 TcpClient::TcpClient():Client() {
 }
 
 TcpClient::~TcpClient() {
+	//cout << "TcpClient index:"<<this->index<<endl;
 }
 
 void TcpClient::start(char * host, int port)  throw(CantConnectException) {

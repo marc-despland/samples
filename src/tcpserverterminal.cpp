@@ -4,6 +4,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+TcpServerTerminal::~TcpServerTerminal() {
+
+}
 
 TcpServerTerminal::TcpServerTerminal(): TcpServer(this) {
 

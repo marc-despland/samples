@@ -14,6 +14,12 @@ static void received_SIGWINCH(int sig) {
 	}
 }
 
+static void received_SIGINT(int sig) {
+	for(unsigned int i=0; i<Client::list.size();i++) {
+		Client::list[i]->quit();
+	}
+}
+
 void Client::setClearFd(int clearin, int clearout) {
 	struct termios ttystate;
 
@@ -29,29 +35,17 @@ void Client::setClearFd(int clearin, int clearout) {
 	Encoder::setClearFd(clearin, clearout);
 }
 
-/*Client::Client(int clin, int clout, int termin, int termout):Encoder("Client") {
-	this->setClearFd(clin, clout);
-	this->setEncodedFd(termin, termout);
-	
-	struct termios ttystate;
-
-	// Backup intial TTY mode of input fd
-	tcgetattr(clin, &(this->inputopt));
-
-	// Update input mode to remove ECHO and ICANON to allow transmission of character without buffering and echo
-	tcgetattr(clin, &ttystate);
-	ttystate.c_lflag &= ~ICANON;
-	ttystate.c_lflag &= ~ECHO;
-	ttystate.c_cc[VMIN] = 1;
-	tcsetattr(clin, TCSANOW, &ttystate);*/
 	
 Client::Client():Encoder("Client") {
 	this->mask=new sigset_t();
 	//Define the sigmask  to catch SIGWINCH with pselect
 	sigemptyset (this->mask);
 	sigaddset (this->mask,SIGWINCH);
+	sigaddset (this->mask,SIGINT);
+	sigprocmask(SIG_BLOCK, this->mask, NULL);
 	
 	this->index=Client::list.size();
+	cout << "Creating the client " << this->index << endl;
 	Client::list.push_back(this);
 	
 	
@@ -62,12 +56,22 @@ Client::Client():Encoder("Client") {
 	
 	sigaction(SIGWINCH,this->eventWindowResize, NULL);
 
+
+	this->eventInterrupted=new struct sigaction();
+	sigemptyset(&(this->eventInterrupted->sa_mask));
+	this->eventInterrupted->sa_flags=0;
+	this->eventInterrupted->sa_handler= received_SIGINT;
+	
+	sigaction(SIGINT,this->eventInterrupted, NULL);
+
 }
 
 Client::~Client() {
+	cout << "Deleting the client " << this->index << endl;
 	if (this->clearin>=0) tcsetattr(this->clearin, TCSANOW, &(this->inputopt));
-	Client::list.erase (Client::list.begin()+this->index);
+	Client::list.erase(Client::list.begin()+this->index);
 	delete this->eventWindowResize;
+	delete this->eventInterrupted;
 }
 
 void Client::executecmd(Command * cmd) {
@@ -79,6 +83,7 @@ void Client::executecmd(Command * cmd) {
 }
 
 void Client::resizetty() {
+	cout << "Client received resize screen" << endl;
 	struct winsize termsize;
 	ioctl(this->clearout,TIOCGWINSZ,&termsize);
 	try {
@@ -88,6 +93,17 @@ void Client::resizetty() {
 		//impossible
 	}
 }
+
+void Client::quit() {
+	cout << "Client received quit" << endl;
+	try {
+		Command cmd(2,"");
+		cmd.send(this->encodedout);
+	}catch(InvalidCmdCodeException &e) {
+		//impossible
+	}
+}
+
 
 bool Client::run() {
 	this->resizetty();

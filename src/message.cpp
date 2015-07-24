@@ -7,6 +7,9 @@ const char* InvalidMessageException::what() {
 	return "Packet not a valid message";
 }
 
+Message::~Message() {
+}
+
 Message::Message():Packet(Message::CODEMESSAGE) {
 }
 

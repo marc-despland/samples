@@ -42,6 +42,7 @@ Encoder::~Encoder(){
 void Encoder::encode() throw (EncoderInvalidFdException){
 	fd_set readset;
 	int result;
+	sigset_t emptyset;
 	if ((this->clearin<0) || (this->clearout<0) || (this->encodedin<0) || (this->encodedout<0)) {
 		throw EncoderInvalidFdException();
 	}
@@ -55,8 +56,8 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 		FD_ZERO(&readset);	
 		FD_SET(this->clearin, &readset);
 		FD_SET(this->encodedin, &readset);		
-		
-		result = pselect(max(this->clearin, this->encodedin)+1, &readset, NULL, NULL, NULL, this->mask);
+		sigemptyset(&emptyset);
+		result = pselect(max(this->clearin, this->encodedin)+1, &readset, NULL, NULL, NULL, &emptyset);
 		if (result > 0) {
 			if (FD_ISSET(this->encodedin, &readset)) {
 				this->readencoded();
@@ -68,6 +69,8 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 			if (errno!=EINTR) {
 				//an error occurs, we quit 
 				this->stop();
+			} else {
+				cout << "Received EINTR in Encoder loop" << endl;
 			}
 		}
 	} while(this->running());	

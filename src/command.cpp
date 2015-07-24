@@ -15,6 +15,10 @@ const char* InvalidCmdCodeException::what() {
 	return "The code for the command is invalid";
 }
 
+
+Command::~Command() {
+}
+
 Command::Command():Packet(Command::CODECOMMAND) {
 	this->cmd=Command::NOCMD;
 }

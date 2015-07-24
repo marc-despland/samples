@@ -6,6 +6,7 @@
 class TcpServerTerminal:public TcpServer, public TcpServerAction {
 	public:
 		TcpServerTerminal();
+		virtual ~TcpServerTerminal();
 		void connected(int clientfd, struct sockaddr_in client,socklen_t clientsize);
 
 

@@ -8,6 +8,7 @@
 class TcpServer: public virtual Runnable, public TcpConnectionListener{
 	public:
 		TcpServer(TcpServerAction * action);
+		virtual ~TcpServer();
 		void start(unsigned int port, unsigned int pool_size);
 		void connectionClosed(int socket);
 		void stop();
