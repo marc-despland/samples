@@ -6,8 +6,9 @@ using namespace std;
 #include <unistd.h>
 #include <termios.h>
 #include <vector>
+#include "runnable.h"
 
-class Client:public Encoder {
+class Client:public Runnable, public Encoder {
 	public:
 		//Client(int clin, int clout, int termin, int termout);
 		Client();

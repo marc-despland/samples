@@ -36,7 +36,7 @@ void Client::setClearFd(int clearin, int clearout) {
 }
 
 	
-Client::Client():Encoder("Client") {
+Client::Client():Runnable(),Encoder(this,"Client") {
 	this->mask=new sigset_t();
 	//Define the sigmask  to catch SIGWINCH with pselect
 	sigemptyset (this->mask);

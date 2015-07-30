@@ -14,6 +14,7 @@
 #include "command.h"
 #include "message.h"
 #include <iostream>
+#include "log.h"
 
 #define BUFFERSIZE	1024
 #define TERMINALBUFFERSIZE	256
@@ -23,11 +24,11 @@ const char* TermTTYForkException::what() {
 }
 
 
-TermTTY::TermTTY(int input, int output):ForkPty(),Encoder("Server") {
+TermTTY::TermTTY(IRunnable * status, int input, int output):ForkPty(status),Encoder(status,"Server") {
 	this->setEncodedFd(input, output);
 	struct termios ttystate;
 	this->mask=new sigset_t();
-	
+	this->status=status;
 	//Define the sigmask  to catch SIGCHLD with pselect
 	sigemptyset (this->mask);
 	sigaddset (this->mask, SIGCHLD);
@@ -69,6 +70,7 @@ bool TermTTY::terminal(){
 
 
 void TermTTY::child() {
+	Log::logger->log("TTY", DEBUG) << "Create the pty to execute shell" << endl;
 	char *argv[]={ "/bin/bash","--login", 0};
 	execv(argv[0], argv);
 }
@@ -76,6 +78,7 @@ void TermTTY::child() {
 
 
 void TermTTY::parent() {
+	Log::logger->log("TTY", DEBUG) << "Start to manage communication" << endl;
 	this->setClearFd(this->ptyfd,this->ptyfd);
 	this->encode();	
 }
@@ -83,7 +86,7 @@ void TermTTY::parent() {
 
 
 void TermTTY::executecmd(Command * cmd) {
-	cout << "TermTTY executecmd " << cmd->command()<< endl;
+	Log::logger->log("TTY", NOTICE)  << "We receive a command " << cmd->command()<< endl;
 	switch (cmd->command()) {
 		case 1: //resizeTTY
 			struct winsize termsize;//ws_row ws_col
@@ -91,7 +94,7 @@ void TermTTY::executecmd(Command * cmd) {
 			ioctl(this->ptyfd,TIOCSWINSZ,&termsize);
 		break;
 		case 2: //quit
-			this->stop();
+			this->status->stop();
 		break;
 	}
 }

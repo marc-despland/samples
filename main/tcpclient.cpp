@@ -29,6 +29,8 @@ int main(int argc, char **argv) {
 		client->start(options.server->stringValue(), options.port->intValue());
 		
 	} catch (OptionsStopException e) {
+	} catch (CantConnectException e) {
+		cout << " Can't establish connect to the server"<<endl;
 	}
 	delete client;
 }

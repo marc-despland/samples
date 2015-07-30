@@ -5,7 +5,7 @@
 
 class TcpServerAction {
 	public:
-		virtual void connected(int clientfd, struct sockaddr_in client,socklen_t clientsize)=0;
+		virtual void connected(IRunnable * status,int clientfd, struct sockaddr_in client,socklen_t clientsize)=0;
 
 };
 

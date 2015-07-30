@@ -5,24 +5,26 @@ using namespace std;
 #include <map>
 #include <unistd.h>
 #include <signal.h>
-#include "runnable.h"
+#include "irunnable.h"
 
 class ForkPtyException : public exception {
 	const char* what();
 };
 
-class ForkPty :public virtual Runnable{
+class ForkPty {
 	public :
-		ForkPty();
+		ForkPty(IRunnable * status);
 		virtual ~ForkPty();
 		void execute() throw (ForkPtyException);
 		static map<pid_t, ForkPty *>	processlist;
+		static void sigchld(int sig);
 	protected:
 		struct sigaction oldact;
 		pid_t   childpid;
 		int 	ptyfd;
 		virtual void child()=0;
 		virtual void parent()=0;
+		IRunnable * status;
 
 };
 #endif

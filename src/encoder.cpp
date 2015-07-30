@@ -6,11 +6,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <iostream>
+#include "log.h"
 
 #define BUFFERSIZE	256
 
 
-Encoder::Encoder(string name):Runnable(){
+Encoder::Encoder(IRunnable * status,string name){
 	this->clearin=-1;
 	this->clearout=-1;
 	this->encodedin=-1;
@@ -18,6 +19,7 @@ Encoder::Encoder(string name):Runnable(){
 	this->name=name;
 	this->bufferencoded=NULL;
 	this->packet=NULL;
+	this->status=status;
 }
 
 void Encoder::setMask(sigset_t * mask) {
@@ -43,6 +45,7 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 	fd_set readset;
 	int result;
 	sigset_t emptyset;
+	bool fdisset=false;
 	if ((this->clearin<0) || (this->clearout<0) || (this->encodedin<0) || (this->encodedout<0)) {
 		throw EncoderInvalidFdException();
 	}
@@ -50,7 +53,7 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 	this->bufferencoded=new Buffer();
 	this->packet=new Packet();
 
-	this->start();
+	this->status->start();
 	do {
 	
 		FD_ZERO(&readset);	
@@ -59,30 +62,45 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 		sigemptyset(&emptyset);
 		result = pselect(max(this->clearin, this->encodedin)+1, &readset, NULL, NULL, NULL, &emptyset);
 		if (result > 0) {
-			if (FD_ISSET(this->encodedin, &readset)) {
-				this->readencoded();
-			}
-			if (FD_ISSET(this->clearin, &readset)) {
-				this->readclear();
+			fdisset=false;
+			try {
+				if (FD_ISSET(this->encodedin, &readset)) {
+					Log::logger->log("ENCODER", DEBUG) <<  "Read encodeded data" << endl;
+					this->readencoded();
+					fdisset=true;
+				}
+				if (FD_ISSET(this->clearin, &readset)) {
+					Log::logger->log("ENCODER", DEBUG) <<  "Read clear data" << endl;
+					this->readclear();
+					fdisset=true;
+				}
+				if (!fdisset) {
+					Log::logger->log("ENCODER", DEBUG) << "No FD is set, probably have to stop" << endl;
+				}
+			}catch(EncoderStreamException &e){
+				Log::logger->log("ENCODER", ERROR) << "One of the stream failed : stop " << endl;
+				this->status->stop();
 			}
 		} else {
 			if (errno!=EINTR) {
 				//an error occurs, we quit 
-				this->stop();
+				Log::logger->log("ENCODER", ERROR) << "An error occurs, have to quit" << endl;
+				this->status->stop();
 			} else {
-				cout << "Received EINTR in Encoder loop" << endl;
+				Log::logger->log("ENCODER", DEBUG) << " Received EINTR in Encoder loop " << endl;
 			}
 		}
-	} while(this->running());	
+	} while(this->status->running());
+	Log::logger->log("ENCODER", DEBUG) << "Encoder loop ended" << endl;	
 }
 
 
-void Encoder::readclear() {
+void Encoder::readclear() throw (EncoderStreamException) {
 	char buffer[BUFFERSIZE];
 	int count;
 	//Child has write on its stdout
 	count = read(this->clearin, buffer, BUFFERSIZE-1);
-	if (count >= 0) {
+	if (count > 0) {
 		buffer[count]=0;
 		Message * out=new Message(buffer);
 		try {
@@ -91,16 +109,19 @@ void Encoder::readclear() {
 		}catch(PacketNotReadyException &e) {
 			//impossible
 		}
+	} else {
+		//An error occurs : nothing to read
+		throw EncoderStreamException();
 	}
 }
 
 
-void Encoder::readencoded() {
+void Encoder::readencoded()  throw (EncoderStreamException)  {
 	char buffer[BUFFERSIZE];
 	int count;
 	//User has write some stuff
 	count = read(this->encodedin, buffer, BUFFERSIZE-1);
-	if (count >= 0) {
+	if (count > 0) {
 		bool somethingToRead=true;
 		this->bufferencoded->write(buffer, count);
 		while (this->bufferencoded->size()>0 && somethingToRead) {
@@ -144,6 +165,9 @@ void Encoder::readencoded() {
 			}
 
 		}
+	} else {
+		//An error occurs : nothing to read
+		throw EncoderStreamException();
 	}
 }
 
