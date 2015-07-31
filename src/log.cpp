@@ -11,7 +11,11 @@ Log * Log::logger=new Log(cout);
 Log Log::cnull(onull);
 
 Log::Log(ostream &out):ostream(out.rdbuf()) {
-	this->level=NONE;
+	this->level=NOTICE;
+}
+
+Log::Log(streambuf * sb):ostream(sb) {
+	this->level=NOTICE;
 }
 
 void Log::setLevel(LogLevel level) {
@@ -23,6 +27,19 @@ void Log::setLevel(LogLevel level) {
 
 void Log::setLevel(string group,LogLevel level) {
 	this->groups[group]=level;
+}
+
+LogLevel Log::levelStr(string str) {
+	LogLevel level=NONE;
+	if (str == "EMERG" ) level=EMERGENCY;
+	if (str == "ALERT" ) level=ALERT;
+	if (str == "CRITICAL" ) level=CRITICAL;
+	if (str == "ERROR" ) level=ERROR;
+	if (str == "WARNING" ) level=WARNING;
+	if (str == "NOTICE" ) level=NOTICE;
+	if (str == "INFO" ) level=INFO;
+	if (str == "DEBUG" ) level=DEBUG;
+	return level;
 }
 
 string Log::strLevel(LogLevel level) {

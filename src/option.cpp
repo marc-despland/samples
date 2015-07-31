@@ -1,56 +1,34 @@
 #include "option.h"
 #include <string.h>
 #include <stdlib.h>
- 
-Option::Option(char shortopt, char * longopt, char * description, bool hasvalue, bool mandatory) {
+#include <sstream>
+
+Option::Option(char shortopt, string longopt, string description, bool hasvalue, bool mandatory):Variable(description, mandatory) {
 	this->shortoption=shortopt;
-	this->longoption=strdup(longopt);
-	this->description=strdup(description);
+	this->longoption=longopt;
 	this->hasvalue=hasvalue;
-	this->mandatory=mandatory;
-	this->isset=false;
-	this->value=NULL;
-}
-
-bool Option::isSet() {
-	return (this->isset);
-}
-
-int Option::intValue() {
-	return atoi(this->value);
-}
-long Option::longValue() {
-	return atol(this->value);
-}
-double Option::doubleValue() {
-	return atof(this->value);
-}
-char * Option::stringValue() {
-	return strdup(this->value);
 }
 
 char Option::getShortOption() {
 	return this->shortoption;
 }
-char * Option::getLongOption() {
+string Option::getLongOption() {
 	return this->longoption;
-}
-char * Option::getDescription() {
-	return this->description;
 }
 bool Option::hasValue() {
 	return this->hasvalue;
 }
-bool Option::isMandatory() {
-	return this->mandatory;
-}
 
-void Option::set(char * value) {
-	this->isset=true;
-	if (value!=NULL) {
-		this->value=strdup(value);
-	} else {
-		if (this->value!=NULL) free(this->value);
-		this->value=NULL;
+
+string Option::toString(bool description) {
+	stringstream tmp;
+	if (!this->mandatory) tmp << "[";
+	tmp << "-" << this->shortoption <<"|--" <<this->longoption;
+	if (this->hasvalue) tmp << " <value>";
+	if (!this->mandatory) tmp << "]";
+	if (description) {
+		if (!this->hasvalue) tmp << "\t";
+		tmp <<"\t" << this->description;
 	}
+	return tmp.str();
 }

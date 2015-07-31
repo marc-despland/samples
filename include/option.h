@@ -1,31 +1,19 @@
 #ifndef _OPTION_H
 #define _OPTION_H
+#include "variable.h"
 
-class Option {
+class Option : public Variable {
 	public:
-		Option(char shortopt, char * longopt, char * description, bool hasvalue, bool mandatory);
-		bool isSet();
-		int intValue();
-		double doubleValue();
-		long longValue();
-		char * stringValue();
-		
+		Option(char shortopt, string longopt, string description, bool hasvalue, bool mandatory);
 		char getShortOption();
-		char * getLongOption();
-		char * getDescription();
+		string getLongOption();
 		bool hasValue();
-		bool isMandatory();
-		void set(char * value);
+		string toString(bool description);
 	
 	protected:
 		char shortoption;
-		char * longoption;
-		char * description;
+		string longoption;
 		bool hasvalue;
-		bool mandatory;
-		bool isset;
-		char * value;
-
 };
 
 #endif

@@ -5,21 +5,6 @@
 
 TcpServerTerminal * server;
 
-class MyOptions : public Options {
-
-	public:
-		MyOptions():Options() {
-			this->port=new Option('p', "port", "The port to listen on", true, true);
-			this->add(this->port);
-			this->pool=new Option('s', "pool", "The size of the connection pool", true, true);
-			this->add(this->pool);
-		}
-		void version(char * program) {
-			cout<< program << " : Test program of TcpServerTerminal class" << endl << "Version 1.0" << endl;
-		}
-		Option * port;
-		Option * pool;
-};
 
 void received_SIGINT(int sig) {
 	Log::logger->log("GLOBAL", INFO) << "Kill detected by TcpServerTTY" << endl;
@@ -29,7 +14,12 @@ void received_SIGINT(int sig) {
 int main(int argc, char **argv) {
 	Log::logger->setLevel(DEBUG);
 	Log::logger->log("GLOBAL", NOTICE) << "Program started " << endl;
-	MyOptions options;
+	Options options(argv[0], "1.0.0", "Implement TcpServer class to communicate with TcpClient");
+	try {
+		options.add('s', "pool", "The size of the connection pool", true, true);
+		options.add('p', "port", "The port to connect to", true, true);
+	} catch(ExistingOptionException &e ) {
+	}
 	server=new TcpServerTerminal();
 	
 	
@@ -42,11 +32,13 @@ int main(int argc, char **argv) {
 	
 	try {
 		options.parse(argc, argv);
-		server->start(options.port->intValue(),options.pool->intValue());
+		server->start(options.get("port")->asInt(),options.get("pool")->asInt());
 		
 	} catch (OptionsStopException &e) {
 	} catch (TcpServerBindException &e) {
 		Log::logger->log("GLOBAL", EMERGENCY) << "Can't listen on requested socket" << endl;
+	}catch (UnknownOptionException &e) {
+		cout << " Request unknown option"<<endl;
 	}
 	delete server;
 }

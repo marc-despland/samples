@@ -4,69 +4,89 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include "log.h"
 
-Options::Options() {
-	this->options.push_back(new Option('h', "help", "Display this help message", false, false));
-	this->options.push_back(new Option('v', "version", "Display software version", false, false));
+Options::Options(string program, string version, string description) {
+	this->program=program;
+	this->vers=version;
+	this->description=description;
+	try {
+		this->add('h', "help", "Display this help message", false, false);
+		this->add('v', "version", "Display software version", false, false);
+	} catch(ExistingOptionException &e) {
+		Log::logger->log("OPTION", EMERGENCY) << "Impossible error : can't create default option help or version" << endl;
+	}
 }
 
 
-void Options::add(Option * option) {
-	this->options.push_back(option);
+Option * Options::get(char shortopt) throw(UnknownOptionException) {
+	if (this->shortopt.count(shortopt)!=1) throw UnknownOptionException();
+	return this->shortopt[shortopt];
+}
+Option * Options::get(string longopt) throw(UnknownOptionException){
+	if (this->longopt.count(longopt)!=1) throw UnknownOptionException();
+	return this->longopt[longopt];
 }
 
-void Options::help(char * program) {
+
+void Options::add(char shortopt, string longopt, string description, bool hasvalue, bool mandatory) throw(ExistingOptionException) {
+	if (this->shortopt.count(shortopt)==1) throw ExistingOptionException();
+	if (this->longopt.count(longopt)==1) throw ExistingOptionException();
+	Option * opt=new Option(shortopt, longopt, description, hasvalue, mandatory);
+	this->longopt[longopt]=opt;
+	this->shortopt[shortopt]=opt;
+}
+
+
+void Options::version() {
+	cout << this->program <<"\t version:"<<this->vers<<endl;
+	cout << this->description<<endl;
+}
+
+void Options::help() {
 	int count=0;
-	printf(" usage : %s	",program);
-	for (unsigned int i=0; i<this->options.size(); i++) {
-		if (this->options[i]->isMandatory()) {
-			if (this->options[i]->hasValue()) {
-				printf("-%c|--%s <value> ",this->options[i]->getShortOption(), this->options[i]->getLongOption());
-			} else {
-				printf("-%c|--%s ",this->options[i]->getShortOption(), this->options[i]->getLongOption());
-			}
-		} else {
-			if (this->options[i]->hasValue()) {
-				printf("[-%c|--%s <value>] ",this->options[i]->getShortOption(), this->options[i]->getLongOption());
-			} else {
-				printf("[-%c|--%s] ",this->options[i]->getShortOption(), this->options[i]->getLongOption());
-			}
-		}
+	cout << this->description<<endl;
+	cout << "Usage : " << this->program <<"\t";
+	for (std::map<string, Option *>::iterator it=this->longopt.begin(); it!=this->longopt.end(); ++it) {
+		cout << it->second->toString(false) << "\t";
 		count++;
-		if (count>3) {
-			printf("\n			");
+		if (count>2) {
+			cout << endl <<"\t\t\t";
 			count=0;
 		}
 	}
-	printf("\n\nDescription:\n");
-	for (unsigned int i=0; i<this->options.size(); i++) {
-		printf("-%c --%s	: %s\n",this->options[i]->getShortOption(), this->options[i]->getLongOption(), this->options[i]->getDescription());
+	cout  << endl <<endl <<"Description:" <<endl;
+	for (std::map<string, Option *>::iterator it=this->longopt.begin(); it!=this->longopt.end(); ++it) {
+		cout << it->second->toString(true)<<endl;
 	}
 
 }
 
 
 void Options::parse(int argc, char **argv) throw(OptionsStopException) {
-	char * shortlist=(char *) malloc(sizeof(char)*((this->options.size())*2));
-	struct option *longlist= (struct option *) malloc(sizeof(struct option)*(this->options.size()));
+	char * shortlist=(char *) malloc(sizeof(char)*((this->longopt.size())*2));
+	struct option *longlist= (struct option *) malloc(sizeof(struct option)*(this->longopt.size()));
 	int index=0;
 	int opt;
 	shortlist[0]=0;
 	bool error=false;
-	bzero(shortlist, sizeof(char)*((this->options.size())*2));	
+	bzero(shortlist, sizeof(char)*((this->longopt.size())*2));	
 
 	//first we create the parameter option for getopt
-	for (unsigned int i=0; i<this->options.size(); i++) {
-		shortlist[strlen(shortlist)]=this->options[i]->getShortOption();
-		longlist[i].name=strdup(this->options[i]->getLongOption());
-		if (this->options[i]->hasValue()) {
+	int i=0;
+	for (std::map<string, Option *>::iterator it=this->longopt.begin(); it!=this->longopt.end(); ++it) {
+		shortlist[strlen(shortlist)]=it->second->getShortOption();
+		longlist[i].name=strdup(it->second->getLongOption().c_str());
+		if (it->second->hasValue()) {
 			strcat(shortlist,":");
 			longlist[i].has_arg=required_argument;
 		} else {
 			longlist[i].has_arg=no_argument;
 		}
 		longlist[i].flag=0;
-		longlist[i].val=this->options[i]->getShortOption();
+		longlist[i].val=it->second->getShortOption();
+		i++;
 	}
 
 
@@ -77,46 +97,45 @@ void Options::parse(int argc, char **argv) throw(OptionsStopException) {
 		switch(opt) {
 			case 'h':
 				//Display help message
-				this->help(argv[0]);
+				this->help();
 				throw OptionsStopException();
 			break;
 			case 'v':
 				//Display the version
-				this->version(argv[0]);
+				this->version();
 				throw OptionsStopException();
 			break;
 			case '?':
 				//@printf("Unknown option\n");
 			break;
 			default:
-				index=this->options.size();
-				for (unsigned int i=0;i<this->options.size();i++) if (this->options[i]->getShortOption()==opt) index=i;
-				if (index<this->options.size()) {
-					if (this->options[index]->hasValue()) {
+				
+				if (this->shortopt.count(opt)==1) {
+					if (this->shortopt[opt]->hasValue()) {
 						if (optarg==0) {
 							error=true;
-							printf("Error, missing value for -%c --%s : %s\n",this->options[index]->getShortOption(), this->options[index]->getLongOption(), this->options[index]->getDescription());
+							Log::logger->log("OPTION", ERROR) << "Missing value for -" <<this->shortopt[opt]->toString(true)<< endl;
 						} else {
-							this->options[index]->set(optarg);
+							this->shortopt[opt]->set(optarg);
 						}
 					} else {
-						this->options[index]->set(NULL);
+						this->shortopt[opt]->set("");
 					}
 				}
 			break;
 		}
 	} //End while loop on getopt
 	//Now check that every required option is set.
-	for (unsigned int i=0; i<this->options.size(); i++) {
-		if (this->options[i]->isMandatory()) {
-			if (!this->options[i]->isSet()) {
+	for (std::map<string, Option *>::iterator it=this->longopt.begin(); it!=this->longopt.end(); ++it) {
+		if (it->second->isMandatory()) {
+			if (!it->second->isAssign()) {
 				error=true;
-				printf("Missing required parameter -%c --%s : %s\n",this->options[i]->getShortOption(), this->options[i]->getLongOption(), this->options[i]->getDescription());
+				Log::logger->log("OPTION", ERROR) << "Missing required option -" <<it->second->toString(true)<< endl;
 			}
 		}
 	}
 	if (error) {
-		this->help(argv[0]);
+		this->help();
 		throw OptionsStopException();
 	}
 }
