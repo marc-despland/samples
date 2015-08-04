@@ -2,8 +2,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-
-
 ostream onull(0);
 
 Log * Log::logger=new Log(cout);
@@ -12,11 +10,18 @@ Log Log::cnull(onull);
 
 Log::Log(ostream &out):ostream(out.rdbuf()) {
 	this->level=NOTICE;
+	this->buffer=NULL;
 }
 
 Log::Log(streambuf * sb):ostream(sb) {
 	this->level=NOTICE;
+	this->buffer=sb;
 }
+
+void Log::close() {
+	//if (this->buffer!=NULL) this->buffer->close();
+}
+
 
 void Log::setLevel(LogLevel level) {
 	this->level=level;

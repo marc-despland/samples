@@ -21,6 +21,7 @@ class Log :public ostream {
 	protected:
 		LogLevel level;
 		static Log cnull;
+		streambuf * buffer;
 		map<string, LogLevel>	groups;
 		
 };

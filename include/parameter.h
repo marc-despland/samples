@@ -5,6 +5,7 @@
 class Parameter: public Variable {
 	public :
 		Parameter(string name, string description, bool mandatory);
+		Parameter(string name, string description, bool mandatory, string value);
 		string getName();
 		
 	protected :

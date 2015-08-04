@@ -7,6 +7,7 @@ Variable::Variable(string description, bool mandatory) {
 	this->assign=false;
 	this->mandatory=mandatory;
 	this->description=description;
+	this->value="";
 }
 
 

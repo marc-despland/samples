@@ -29,6 +29,7 @@ class Parameters {
 		Parameters() ;
 		void parse() throw (FileNotFoundException,InvalidConfigFileException);
 		void add(string name, string description, bool mandatory)throw (ExistingParameterNameException);
+		void add(string name, string description, bool mandatory,string value)throw (ExistingParameterNameException);
 		Parameter * get(string name) throw (UnknownParameterNameException);
 		void create()throw (CantCreateFileException);
 		void setFileName(string filename) ;

@@ -27,7 +27,7 @@ void Parameters::create() throw (CantCreateFileException){
 		Log::logger->log("CONFIG", DEBUG) << "Write parameter in file " << it->second->getName() << endl;
 		is << "# " << it->second->getDescription() << endl;
 		if (!it->second->isMandatory()) is <<"#";
-		is << it->second->getName()<<"="<<endl<<endl;
+		is << it->second->getName()<<"="<<it->second->asString()<<endl<<endl;
 	}
 	fb.close();
 }
@@ -89,6 +89,11 @@ void Parameters::parse() throw (FileNotFoundException,InvalidConfigFileException
 void Parameters::add(string name, string description, bool mandatory) throw (ExistingParameterNameException){
 	if (this->params.count(name)==1) throw ExistingParameterNameException();
 	Parameter * param=new Parameter(name, description, mandatory);
+	this->params[name]=param;
+}
+void Parameters::add(string name, string description, bool mandatory, string value) throw (ExistingParameterNameException){
+	if (this->params.count(name)==1) throw ExistingParameterNameException();
+	Parameter * param=new Parameter(name, description, mandatory, value);
 	this->params[name]=param;
 }
 

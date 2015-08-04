@@ -1,10 +1,10 @@
 SHELL = /bin/sh
 CC    = g++
 
-CPPFLAGS       = -g -Wall -Iinclude
+CPPFLAGS       = -g -Wall -Iinclude -std=c++11
 CFLAGS       = $(CPPFLAGS) 
 LDLIBS		 = -lutil 
-TARGET  = terminal protocol options tcpclient tcpservertty parameters
+TARGET  = terminal protocol options tcpclient tcpservertty parameters daemon
 SOURCES = $(shell echo src/*.cpp)
 HEADERS = $(shell echo include/*.h)
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -29,6 +29,10 @@ tcpservertty: $(OBJECTS) main/tcpservertty.o $(HEADERS)
 
 parameters: $(OBJECTS) main/parameters.o $(HEADERS)
 	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
+
+daemon: $(OBJECTS) main/daemon.o $(HEADERS)
+	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
+
 clean:
 	-rm -f $(OBJECTS)
 	-rm -f gmon.out

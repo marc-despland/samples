@@ -16,7 +16,7 @@ void Fork::sigint(int sig) {
 	pid_t pid=getpid();
 	Fork::thechild->status->stop();
 	if (Fork::processlist.count(pid)==1) {
-		Log::logger->log("FORK", DEBUG) << "Stoping status child " << getpid() << endl;
+		Log::logger->log("FORK", DEBUG) << "Stoping status child " << endl;
 		Fork::processlist[pid]->status->stop();
 	}
 }
@@ -67,7 +67,7 @@ void Fork::execute() throw (ForkException) {
 		eventSigInt.sa_handler= Fork::sigint;
 		//Start listening to SIGINT signal
 		sigaction(SIGINT,&eventSigInt, NULL);
-
+		this->status->start();
 		this->child();
 		exit(0);
 	} else {
