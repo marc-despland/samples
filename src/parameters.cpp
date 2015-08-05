@@ -35,7 +35,7 @@ void Parameters::create() throw (CantCreateFileException){
 void Parameters::parse() throw (FileNotFoundException,InvalidConfigFileException) {
 	std::filebuf fb;
 	if (!fb.open (filename.c_str(),std::ios::in)) {
-		throw FileNotFoundException();
+		throw FileNotFoundException(filename);
 	}
 	std::istream is(&fb);
 	string line;

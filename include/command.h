@@ -23,6 +23,7 @@ class Command : public Packet {
 	protected:
 		unsigned int cmd;
 	public:
+		enum CODE:int {RESIZETTY=1, QUIT=2, REQUESTTTYSIZE=3, AUTHENTICATE=4, REQUESTAUTHENT=5, FAILEDAUTHENT=6, SUCCESSAUTHENT=7};
 		/**
 		 * Create a new empty Command
 		 */

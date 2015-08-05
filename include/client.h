@@ -8,6 +8,9 @@ using namespace std;
 #include <vector>
 #include "runnable.h"
 
+class InterruptAuthentException : public exception {};
+
+
 class Client:public Runnable, public Encoder {
 	public:
 		//Client(int clin, int clout, int termin, int termout);
@@ -24,6 +27,8 @@ class Client:public Runnable, public Encoder {
 		struct sigaction * eventWindowResize;
 		struct sigaction * eventInterrupted;
 		int index;
+		void requestauthent() throw(InterruptAuthentException);
+		int clearread(char * buffer, int size);
 		
 
 };

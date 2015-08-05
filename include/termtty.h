@@ -10,6 +10,7 @@ using namespace std;
 #include "encoder.h"
 #include "command.h"
 #include "irunnable.h"
+#include <sys/types.h>
 
 class TermTTYForkException : public exception {
 	const char* what();
@@ -21,6 +22,7 @@ class TermTTY :  public ForkPty, public Encoder {
 		TermTTY(IRunnable * status, int input, int output);
 		virtual ~TermTTY();
 		bool terminal();
+		void setUser(uid_t uid, gid_t gid);
 	protected:
 		void executecmd(Command * cmd);
 		struct termios inputopt;
@@ -28,6 +30,9 @@ class TermTTY :  public ForkPty, public Encoder {
 		void child();
 		void parent();
 		IRunnable * status;
+		uid_t uid;
+		gid_t gid;
+		
 };
 
 

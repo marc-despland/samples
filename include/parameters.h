@@ -1,15 +1,16 @@
 #ifndef _PARAMETERS_H
 #define _PARAMETERS_H
 #include <map>
-#include <exception>
+#include "myexception.h"
 #include "parameter.h"
 
 using namespace std;
 
 
 
-class FileNotFoundException : public exception {
-	const char* what();
+class FileNotFoundException : public MyException {
+	public:
+		FileNotFoundException(string target):MyException(target) {};
 };
 class CantCreateFileException : public exception {
 	const char* what();

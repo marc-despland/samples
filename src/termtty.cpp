@@ -22,9 +22,14 @@
 const char* TermTTYForkException::what() {
 	return "Can't fork process to create tty";
 }
-
+void TermTTY::setUser(uid_t uid, gid_t gid) {
+	this->uid=uid;
+	this->gid=gid;
+}
 
 TermTTY::TermTTY(IRunnable * status, int input, int output):ForkPty(status),Encoder(status,"Server") {
+	this->uid=-1;
+	this->gid=-1;
 	this->setEncodedFd(input, output);
 	struct termios ttystate;
 	this->mask=new sigset_t();
@@ -70,9 +75,18 @@ bool TermTTY::terminal(){
 
 
 void TermTTY::child() {
-	Log::logger->log("TTY", DEBUG) << "Create the pty to execute shell" << endl;
-	char *argv[]={ "/bin/bash","--login", 0};
-	execv(argv[0], argv);
+	bool ok=true;
+	Log::logger->log("TTY", DEBUG) << "Child TTY created" << endl;
+	if (this->uid>=0) {
+		Log::logger->log("TTY", DEBUG) << "We need to switch to user ("<<this->uid<<","<<this->gid<<")" << endl;
+		ok=(setgid(this->gid)==0 && setuid(this->uid)==0);
+	
+	}
+	if (ok) {
+		Log::logger->log("TTY", DEBUG) << "Create the pty to execute shell" << endl;
+		char *argv[]={ "/bin/bash","--login", 0};
+		execv(argv[0], argv);
+	}
 }
 
 
@@ -80,6 +94,8 @@ void TermTTY::child() {
 void TermTTY::parent() {
 	Log::logger->log("TTY", DEBUG) << "Start to manage communication" << endl;
 	this->setClearFd(this->ptyfd,this->ptyfd);
+	Command cmd(Command::REQUESTTTYSIZE, "");
+	cmd.send(this->encodedout);
 	this->encode();	
 }
 
@@ -88,13 +104,15 @@ void TermTTY::parent() {
 void TermTTY::executecmd(Command * cmd) {
 	Log::logger->log("TTY", NOTICE)  << "We receive a command " << cmd->command()<< endl;
 	switch (cmd->command()) {
-		case 1: //resizeTTY
+		case Command::RESIZETTY: //resizeTTY
 			struct winsize termsize;//ws_row ws_col
 			cmd->parameters("%06u %06u",&(termsize.ws_row),&(termsize.ws_col));
 			ioctl(this->ptyfd,TIOCSWINSZ,&termsize);
 		break;
-		case 2: //quit
+		case Command::QUIT: //quit
 			this->status->stop();
+		case Command::REQUESTTTYSIZE: //request size
+			//nothing to do on server side
 		break;
 	}
 }

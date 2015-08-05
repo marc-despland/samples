@@ -46,9 +46,9 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 	int result;
 	sigset_t emptyset;
 	bool fdisset=false;
-	if ((this->clearin<0) || (this->clearout<0) || (this->encodedin<0) || (this->encodedout<0)) {
+/*	if ((this->clearin<0) || (this->clearout<0) || (this->encodedin<0) || (this->encodedout<0)) {
 		throw EncoderInvalidFdException();
-	}
+	}*/
 	
 	this->bufferencoded=new Buffer();
 	this->packet=new Packet();
@@ -57,7 +57,7 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 	do {
 	
 		FD_ZERO(&readset);	
-		FD_SET(this->clearin, &readset);
+		if (this->clearin>=0) FD_SET(this->clearin, &readset);
 		FD_SET(this->encodedin, &readset);		
 		sigemptyset(&emptyset);
 		result = pselect(max(this->clearin, this->encodedin)+1, &readset, NULL, NULL, NULL, &emptyset);
@@ -96,12 +96,14 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 
 
 void Encoder::readclear() throw (EncoderStreamException) {
+	Log::logger->log("ENCODER", DEBUG) << "Enter readclear" << endl;
 	char buffer[BUFFERSIZE];
 	int count;
 	//Child has write on its stdout
 	count = read(this->clearin, buffer, BUFFERSIZE-1);
 	if (count > 0) {
 		buffer[count]=0;
+		Log::logger->log("ENCODER", DEBUG) << "Read: " << buffer<< endl;
 		Message * out=new Message(buffer);
 		try {
 			out->send(this->encodedout);
@@ -110,7 +112,7 @@ void Encoder::readclear() throw (EncoderStreamException) {
 			//impossible
 		}
 	} else {
-		//An error occurs : nothing to read
+		Log::logger->log("ENCODER", DEBUG) << "Strange, nothing to read on clear fd" << endl;
 		throw EncoderStreamException();
 	}
 }
@@ -137,10 +139,15 @@ void Encoder::readencoded()  throw (EncoderStreamException)  {
 				switch(this->packet->getCode()) {
 					case Message::CODEMESSAGE:
 						try {
-							Message * msg=new Message(this->packet);
-							msg->sendmsg(this->clearout);
-							this->packet->clear();
-							delete msg;
+							if (this->clearout>=0) {
+								Message * msg=new Message(this->packet);
+								msg->sendmsg(this->clearout);
+								this->packet->clear();
+								delete msg;
+							} else {
+								this->packet->clear();
+							}
+							
 						}catch(PacketNotReadyException &e) {
 							//impossible
 						}catch(InvalidMessageException &e) {
@@ -166,7 +173,7 @@ void Encoder::readencoded()  throw (EncoderStreamException)  {
 
 		}
 	} else {
-		//An error occurs : nothing to read
+		Log::logger->log("ENCODER", DEBUG) << "Strange, nothing to read on encoded fd" << endl;
 		throw EncoderStreamException();
 	}
 }

@@ -3,37 +3,22 @@ CC    = g++
 
 CPPFLAGS       = -g -Wall -Iinclude -std=c++11
 CFLAGS       = $(CPPFLAGS) 
-LDLIBS		 = -lutil 
-TARGET  = terminal protocol options tcpclient tcpservertty parameters daemon
+LDLIBS		 = -lutil -lpam
+TARGET  = terminal protocol options tcpclient tcpservertty parameters daemon authent
 SOURCES = $(shell echo src/*.cpp)
 HEADERS = $(shell echo include/*.h)
 OBJECTS = $(SOURCES:.cpp=.o)
+MAIN	= $(shell echo main/*.cpp)
+MAINOBJ	= $(MAIN:.cpp=.o)
 DEBUGFLAGS = -g
  
 all: $(TARGET)
  
-terminal: $(OBJECTS) main/terminal.o $(HEADERS)
-	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
-
-protocol: $(OBJECTS) main/protocol.o $(HEADERS)
-	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o 
-
-options: $(OBJECTS) main/options.o $(HEADERS)
-	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o 
-
-tcpclient: $(OBJECTS) main/tcpclient.o $(HEADERS)
-	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o 
-
-tcpservertty: $(OBJECTS) main/tcpservertty.o $(HEADERS)
-	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
-
-parameters: $(OBJECTS) main/parameters.o $(HEADERS)
-	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
-
-daemon: $(OBJECTS) main/daemon.o $(HEADERS)
-	$(CC) $(CFLAGS) $(LDLIBS) -o $@ $(OBJECTS) main/$@.o
+%:   main/%.o $(OBJECTS)  $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $< $(LDLIBS)
 
 clean:
+	-echo "clean"
 	-rm -f $(OBJECTS)
 	-rm -f gmon.out
 	-rm -f main/*.o
@@ -41,6 +26,13 @@ clean:
 distclean: clean
 	-rm -f $(TARGET)
  
+gitadd:
+	-git add src/*.cpp
+	-git add include/*.h
+	-git add main/*.cpp
+	-git add Makefile
+ 
+.SECONDARY: $(OBJECTS) $(MAINOBJ)
  
 .SECONDEXPANSION:
  
@@ -49,4 +41,4 @@ $(foreach OBJ,$(OBJECTS),$(eval $(OBJ)_DEPS = $(shell $(CC) $(CFLAGS) -MM $(OBJ:
 	$(CC) $(CFLAGS) $(LDLIBS) -c -o $@ $<
   
  
-.PHONY : all install uninstall clean distclean
+.PHONY : all install uninstall clean distclean gitadd

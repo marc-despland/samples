@@ -16,6 +16,7 @@ Daemon::Action Daemon::strAction(string action) {
 	if (action=="stop") tmp=STOP;
 	if (action=="reload") tmp=RELOAD;
 	if (action=="create") tmp=CREATE;
+	if (action=="configtest") tmp=CONFIGTEST;
 	return tmp;
 }
 	
@@ -51,7 +52,7 @@ Daemon::Daemon(string program, string version, string description):Runnable(), F
 	try {
 		this->options->add('u', "usermod", "Do not start the program as a Daemon", false, false);
 		this->options->add('f', "config", "The configuration file to use", true, true);
-		this->options->add('a', "action", "start|stop|create|reload", true, true);
+		this->options->add('a', "action", "start|stop|create|reload|configtest", true, true);
 	} catch(ExistingOptionException &e ) {
 		Log::logger->log("DAEMON", EMERGENCY) << "Can't create one of the command line option"<< endl;
 	}
@@ -80,7 +81,18 @@ void Daemon::start(int argc, char **argv) throw (ForkException, OptionsStopExcep
 			} catch(CantCreateFileException &e) {
 				Log::logger->log("DAEMON", EMERGENCY) << "Can't create file " << this->options->get("config")->asString()<< endl;
 			}
-			throw OptionsStopException();
+			//throw OptionsStopException();
+		case CONFIGTEST :
+			cout << "Loading config file to check it is well formed" << endl;
+			try {
+				this->parameters->parse();
+			}catch(FileNotFoundException &e) {
+				Log::logger->log("DAEMON", DEBUG) << "File Not Found Exception : " << e.what()<< endl;
+				cout << "Can't open config file " << e.what()<< endl;
+			}catch(InvalidConfigFileException &e) {
+				Log::logger->log("DAEMON", EMERGENCY) << "Invalid configuration file " << this->options->get("config")->asString()<< endl;
+			}
+			//throw OptionsStopException();
 		break;
 		case START :
 			try {
