@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 CC    = g++
-
-CPPFLAGS       = -g -Wall -Iinclude -std=c++11
+OLDFLAGS	= -std=c++11
+CPPFLAGS       = -g -Wall -Iinclude 
 CFLAGS       = $(CPPFLAGS) 
 LDLIBS		 = -lutil -lpam
 TARGET  = terminal protocol options tcpclient tcpservertty parameters daemon authent

@@ -4,6 +4,14 @@
 #include <iostream>
 #include "log.h"
 
+#include <sys/select.h>
+
+       /* According to earlier standards */
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+
 vector<Client *> Client::list;
 
 /*

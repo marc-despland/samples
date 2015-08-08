@@ -11,6 +11,7 @@ class MyException :public exception {
 	public:
 		MyException(string target);
 		MyException();
+		~MyException() throw() {};
 		virtual const char * what();
 };
 

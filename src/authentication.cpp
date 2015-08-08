@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "authentication.h"
 #include "log.h"
 #include <string.h>
