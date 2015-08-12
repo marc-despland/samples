@@ -1,11 +1,11 @@
 SHELL = /bin/sh
 CC    = g++
 
-CPPFLAGS       = -g -Wall -Iinclude
+CPPFLAGS       = -g -Wall -Iinclude -DHAVE_TCP_CONNECTION
 OLDFLAGS	= -std=c++11
 CFLAGS       = $(CPPFLAGS) 
 LDLIBS		 = -lutil -lpam
-TARGET  = terminal protocol options tcpclient tcpservertty parameters daemon authent
+TARGET  = terminal protocol options tcpclient tcpservertty parameters daemon authent newserver
 SOURCES = $(shell echo src/*.cpp)
 HEADERS = $(shell echo include/*.h)
 OBJECTS = $(SOURCES:.cpp=.o)

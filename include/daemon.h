@@ -37,6 +37,7 @@ class Daemon: public Runnable, public Fork {
 
 		void child();
 		void parent();
+		void terminated();
 };
 
 #endif

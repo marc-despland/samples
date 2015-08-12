@@ -1,6 +1,8 @@
 #include "daemon.h"
 #include "log.h"
-#include "tcpserverterminal.h"
+#include "server.h"
+#include "clienthandlerterminal.h"
+#include "connectiontcp.h"
 
 class TestDaemon:public Daemon {
 	public:
@@ -17,16 +19,20 @@ class TestDaemon:public Daemon {
 			try {
 				this->parameters->add("port", "The listen port of the server", true, "8080");
 				this->parameters->add("pool", "The size of the connection pool", true, "5");
+				Log::logger->log("MAIN",NOTICE) << "Adding port and pool parameters" << endl;
 			} catch(ExistingParameterNameException &e ) {
 				Log::logger->log("MAIN", EMERGENCY) << "Can't create one of the file parameters"<< endl;
 			}
-			this->server=new TcpServerTerminal();
 		}
+
 		void daemon(){
 			Log::logger->log("MAIN",NOTICE) << "Child daemon started" << endl;
+			Host * endpoint=new Host("0.0.0.0", this->parameters->get("port")->asInt());
+			Log::logger->log("MAIN",NOTICE) << "Daemon will listen on " << endpoint<< endl;
+			this->server=new Server<ConnectionTCP>(endpoint, this->parameters->get("pool")->asInt(),new TerminalFactory());
 			try {
-				this->server->start(this->parameters->get("port")->asInt(),this->parameters->get("pool")->asInt());
-			} catch (TcpServerBindException &e) {
+				this->server->start();		
+			} catch(ConnectionListenException &e) {
 				Log::logger->log("MAIN", EMERGENCY) << "Can't listen on requested socket" << endl;
 			}
 				
@@ -36,7 +42,7 @@ class TestDaemon:public Daemon {
 			this->server->stop();
 		}
 		
-		TcpServerTerminal * server;
+		Server<ConnectionTCP> * server;
 };
 
 

@@ -45,7 +45,7 @@ void Daemon::Signal(int sig){
 	}	
 }
 
-Daemon::Daemon(string program, string version, string description):Runnable(), Fork(this) {
+Daemon::Daemon(string program, string version, string description):Runnable(), Fork(this, "Daemon") {
 	this->logfile=NULL;
 	this->lock=-1;
 	this->options=new Options(program,version, description);
@@ -261,4 +261,8 @@ int Daemon::pid() {
 	}
 			Log::logger->log("DAEMON", DEBUG) << "Daemon pid " << tmp<< endl;
 	return tmp;
+}
+
+void Daemon::terminated() {
+
 }
