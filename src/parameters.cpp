@@ -89,12 +89,12 @@ void Parameters::parse() throw (FileNotFoundException,InvalidConfigFileException
 void Parameters::add(string name, string description, bool mandatory) throw (ExistingParameterNameException){
 	if (this->params.count(name)==1) throw ExistingParameterNameException();
 	Parameter * param=new Parameter(name, description, mandatory);
-	this->params[name]=param;
+	this->params.insert(pair<string,Parameter *>(name,param));
 }
 void Parameters::add(string name, string description, bool mandatory, string value) throw (ExistingParameterNameException){
 	if (this->params.count(name)==1) throw ExistingParameterNameException();
 	Parameter * param=new Parameter(name, description, mandatory, value);
-	this->params[name]=param;
+	this->params.insert(pair<string,Parameter *>(name,param));
 }
 
 

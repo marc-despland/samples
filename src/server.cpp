@@ -2,7 +2,7 @@
 #include "log.h"
 #include <errno.h>
 #include <string.h>
-
+#include <stdlib.h>
 template <typename Cnx>   
 
 Server<Cnx>::~Server() {
@@ -39,12 +39,12 @@ void Server<Cnx>::start() throw(ConnectionListenException) {
 			client->registerListener(this);
 			Log::logger->log("SERVER", DEBUG) << "Listener registered " << client->endpoint() << endl;
 			ClientHandler * handler=this->factory->createClientHandler(client);
-			Log::logger->log("SERVER", DEBUG) << "Handler created " << client->endpoint() << " Socket : " << client->socket()<< endl;
-			//this->pool[client->socket()]=handler;
+			Log::logger->log("SERVER", DEBUG) << "Handler created " << client->endpoint() << " Socket : " << client->socket()<< "Handler " << handler<<endl;
+			this->pool[client->socket()]=handler;
 			Log::logger->log("SERVER", DEBUG) << "Handler add in pool " << client->endpoint() << endl;
 			try {
 				Log::logger->log("SERVER", DEBUG) << "Starting Handler " << client->endpoint() << endl;
-				handler->start();
+				handler->handle();
 				Log::logger->log("SERVER", DEBUG) << "Handler start " << client->endpoint() << endl;
 				
 			} catch (ForkException &e) {
@@ -65,7 +65,7 @@ void Server<Cnx>::stop() {
 	this->Runnable::stop();
 	//we have to close all client socket
 	for (map<int, ClientHandler *>::iterator it=this->pool.begin(); it!=this->pool.end(); ++it) {
-		it->second->stop();
+		it->second->interrupt();
 	}
 	this->connection->shutdown();
 }
@@ -74,10 +74,13 @@ void Server<Cnx>::stop() {
 
 template <typename Cnx>   
 void Server<Cnx>::established(Connection * cnx) {
+	Log::logger->log("SERVER",DEBUG) << "Connection established " << cnx <<endl;
+			
 }
 
 template <typename Cnx>   
 void Server<Cnx>::closed(Connection * cnx) {
+	Log::logger->log("SERVER",DEBUG) << "Connection closed " << cnx <<endl;
 	if (this->pool.count(cnx->socket())==1) {
 		ClientHandler * handler=this->pool[cnx->socket()];
 		this->pool.erase(cnx->socket());

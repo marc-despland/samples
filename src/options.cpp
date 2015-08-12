@@ -12,8 +12,8 @@ Options::Options(string program, string version, string description) {
 	this->vers=version;
 	this->description=description;
 	try {
-		this->add('h', "help", "Display this help message", false, false);
-		this->add('v', "version", "Display software version", false, false);
+		this->add('h', string("help"), "Display this help message", false, false);
+		this->add('v', string("version"), "Display software version", false, false);
 	} catch(ExistingOptionException &e) {
 		Log::logger->log("OPTION", EMERGENCY) << "Impossible error : can't create default option help or version" << endl;
 	}
@@ -31,11 +31,12 @@ Option * Options::get(string longopt) throw(UnknownOptionException){
 
 
 void Options::add(char shortopt, string longopt, string description, bool hasvalue, bool mandatory) throw(ExistingOptionException) {
+	Log::logger->log("OPTION", DEBUG) << "Add option "<<shortopt << "/" <<longopt << endl;
 	if (this->shortopt.count(shortopt)==1) throw ExistingOptionException();
 	if (this->longopt.count(longopt)==1) throw ExistingOptionException();
 	Option * opt=new Option(shortopt, longopt, description, hasvalue, mandatory);
-	this->longopt[longopt]=opt;
-	this->shortopt[shortopt]=opt;
+	this->longopt.insert(pair<string, Option *>(longopt,opt));
+	this->shortopt.insert(pair<char, Option *>(shortopt,opt));
 }
 
 

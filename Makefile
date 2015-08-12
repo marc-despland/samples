@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 CC    = g++
 
-CPPFLAGS       = -g -Wall -Iinclude -DHAVE_TCP_CONNECTION
+CPPFLAGS       = -g -Wall -Iinclude -DHAVE_TCP_CONNECTION -O0
 OLDFLAGS	= -std=c++11
 CFLAGS       = $(CPPFLAGS) 
 LDLIBS		 = -lutil -lpam

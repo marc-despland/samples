@@ -47,7 +47,6 @@ ConnectionTCP * ConnectionTCP::accept() throw(ConnectionAcceptException) {
 	bzero(&client,sizeof(client));
 	clientsize=sizeof(client);
 	do {
-		errno=0;
 		bzero(&client,sizeof(client));
 		clientsize=sizeof(client);
 		clientfd = ::accept(this->socketfd,(struct sockaddr *)&client,&clientsize);
@@ -61,6 +60,7 @@ ConnectionTCP * ConnectionTCP::accept() throw(ConnectionAcceptException) {
 	Log::logger->log("CNXTCP", DEBUG) << "We will return a new Connection"<<endl;
 	return new ConnectionTCP(clientfd, new Host(address, port));;
 }
+
 void ConnectionTCP::shutdown() {
 	::shutdown(this->socketfd, SHUT_RDWR);
 	::close(this->socketfd);

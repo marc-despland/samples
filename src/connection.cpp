@@ -57,4 +57,9 @@ Connection * Connection::accept() throw(ConnectionAcceptException) {
 
 Host * Connection::endpoint() {
 	return this->host;
-}		
+}
+
+std::ostream & operator<<(std::ostream &os, const Connection * c) {
+	return os << c->host;
+}
+		

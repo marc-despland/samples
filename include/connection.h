@@ -49,6 +49,7 @@ class Connection {
 		virtual Connection * accept() throw(ConnectionAcceptException);
 		virtual void shutdown();
 		
+		friend std::ostream & operator<<(std::ostream &os, const Connection * c);
 		
 	protected:
 		int 					socketfd;

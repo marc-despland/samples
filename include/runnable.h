@@ -6,8 +6,8 @@ using namespace std;
 class Runnable : public IRunnable{
 	public:
 		Runnable();
-		void start();
-		void stop();
+		virtual void start();
+		virtual void stop();
 		bool running();
 	protected:
 		bool flag;

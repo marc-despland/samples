@@ -50,6 +50,8 @@ void Fork::killChild() {
 		if (this->status!=NULL) this->status->stop();
 		Log::logger->log("FORK", DEBUG) << this->name<<" - " << "Send SIGINT to child : " << this->childpid << endl;
 		kill(this->childpid, SIGINT);
+	} else {
+		Log::logger->log("FORK", DEBUG) << this->name<<" - " << "Can't send SIGINT to child pid " << this->childpid << endl;
 	}
 }
 
@@ -69,6 +71,7 @@ void Fork::execute() throw (ForkException) {
 		if (this->status!=NULL) this->status->start();
 		pid_t pid=getpid();
 		Fork::processlist[pid]=this;
+		Log::logger->log("FORK", DEBUG) << this->name<<" - " << "We will execute the child action " <<pid << endl;
 		this->child();
 		exit(0);
 	} else {
@@ -84,6 +87,7 @@ void Fork::execute() throw (ForkException) {
 
 		if (this->status!=NULL) this->status->start();
 		Fork::processlist[this->childpid]=this;
+		Log::logger->log("FORK", DEBUG) << this->name<<" - " << "We will execute the parent action" << endl;
 		this->parent();
 	}
 }

@@ -1,9 +1,11 @@
 #include <iostream>
 #include "options.h"
-#include "tcpserverterminal.h"
+#include "server.h"
+#include "connectiontcp.h"
+#include "clienthandlerterminal.h"
 #include "log.h"
 
-TcpServerTerminal * server;
+Server<ConnectionTCP> * server;
 
 
 void received_SIGINT(int sig) {
@@ -19,9 +21,7 @@ int main(int argc, char **argv) {
 		options.add('s', "pool", "The size of the connection pool", true, true);
 		options.add('p', "port", "The port to connect to", true, true);
 	} catch(ExistingOptionException &e ) {
-	}
-	server=new TcpServerTerminal();
-	
+	}	
 	
 	struct sigaction * eventInterrupted=new struct sigaction();
 	sigemptyset(&(eventInterrupted->sa_mask));
@@ -32,12 +32,16 @@ int main(int argc, char **argv) {
 	
 	try {
 		options.parse(argc, argv);
-		server->start(options.get("port")->asInt(),options.get("pool")->asInt());
-		
+		Host * endpoint=new Host("0.0.0.0", options.get("port")->asInt());
+		Log::logger->log("MAIN",NOTICE) << "Daemon will listen on " << endpoint<< endl;
+		Server<ConnectionTCP> * server=new Server<ConnectionTCP>(endpoint, options.get("pool")->asInt(),new TerminalFactory());
+		try {
+			server->start();		
+		} catch(ConnectionListenException &e) {
+			Log::logger->log("MAIN", EMERGENCY) << "Can't listen on requested socket" << endl;
+		}		
 	} catch (OptionsStopException &e) {
-	} catch (TcpServerBindException &e) {
-		Log::logger->log("GLOBAL", EMERGENCY) << "Can't listen on requested socket" << endl;
-	}catch (UnknownOptionException &e) {
+	} catch (UnknownOptionException &e) {
 		cout << " Request unknown option"<<endl;
 	}
 	delete server;

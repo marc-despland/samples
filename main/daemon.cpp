@@ -3,6 +3,7 @@
 #include "server.h"
 #include "clienthandlerterminal.h"
 #include "connectiontcp.h"
+#include <stdlib.h>
 
 class TestDaemon:public Daemon {
 	public:
@@ -23,12 +24,15 @@ class TestDaemon:public Daemon {
 			} catch(ExistingParameterNameException &e ) {
 				Log::logger->log("MAIN", EMERGENCY) << "Can't create one of the file parameters"<< endl;
 			}
+			
 		}
 
 		void daemon(){
 			Log::logger->log("MAIN",NOTICE) << "Child daemon started" << endl;
 			Host * endpoint=new Host("0.0.0.0", this->parameters->get("port")->asInt());
 			Log::logger->log("MAIN",NOTICE) << "Daemon will listen on " << endpoint<< endl;
+			
+	
 			this->server=new Server<ConnectionTCP>(endpoint, this->parameters->get("pool")->asInt(),new TerminalFactory());
 			try {
 				this->server->start();		
@@ -51,6 +55,8 @@ class TestDaemon:public Daemon {
 int main(int argc, char **argv) {
 	Log::logger->setLevel(DEBUG);
 	TestDaemon::Initialize(argv[0], "1.0.0", "Test program for class Daemon");
+		//exit(0);
+
 	try {
 		TestDaemon::Start(argc, argv);
 	} catch(ForkException &e) {

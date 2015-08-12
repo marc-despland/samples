@@ -3,6 +3,7 @@
 #include "client.h"
 #include <iostream>
 #include "runnable.h"
+#include "log.h"
 
 class Sample:public Runnable,public Fork {
 	public:
@@ -14,9 +15,12 @@ class Sample:public Runnable,public Fork {
 		Client * client;
 		void child();
 		void parent();
+		void terminated();
 };
 
-Sample::Sample():Runnable(), Fork(this) {
+void Sample::terminated() {
+}
+Sample::Sample():Runnable(), Fork(this, "Terminal") {
 	pipe(this->c2t);
 	pipe(this->t2c);
 	cout << "TermTTY : " << this->c2t[1] << ", " << this->t2c[0]<< endl;

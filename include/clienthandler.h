@@ -8,8 +8,8 @@ class ClientHandler:public Runnable,public Fork {
 	public:
 		ClientHandler(Connection * cnx);
 		virtual ~ClientHandler();
-		void start() throw (ForkException);
-		virtual void stop();
+		void handle() throw (ForkException);
+		virtual void interrupt();
 		virtual void action() =0;
 		void child();
 		void parent();

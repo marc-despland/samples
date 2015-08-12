@@ -1,6 +1,6 @@
 #include "options.h"
 #include <iostream>
-
+#include "log.h"
 
 int main(int argc, char **argv) {
 	Options options(argv[0], "2.0.0", "Test program to check options parsing class");
