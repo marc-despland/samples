@@ -12,6 +12,7 @@ class ConnectionTCP:public Connection {
 		virtual void listen(unsigned int size) throw(ConnectionListenException);
 		virtual ConnectionTCP * accept() throw(ConnectionAcceptException);
 		virtual void shutdown();
+		virtual void connect() throw(CantConnectException);
 };
 
 #endif

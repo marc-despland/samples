@@ -15,8 +15,9 @@ class Host {
 		friend std::ostream & operator<<(std::ostream &os, const Host * h);
 		
 		virtual unsigned int port();
+		virtual string name();
 	protected:
-		string name;
+		string myname;
 		unsigned int myport;
 };		
 

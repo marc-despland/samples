@@ -4,10 +4,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <strings.h>
+#include <string.h>
 #include <arpa/inet.h>
 #include "log.h"
 #include <errno.h>
 #include <string.h>
+#include <netdb.h>
+
 
 ConnectionTCP::ConnectionTCP(Host * host):Connection(host){
 
@@ -67,6 +70,34 @@ void ConnectionTCP::shutdown() {
 	this->Connection::shutdown();
 }
 
+
+void ConnectionTCP::connect() throw(CantConnectException) {
+	struct sockaddr_in server;
+	long hostaddress;
+	struct hostent *serverent;
+	
+	bzero(&server,sizeof(server));
+	hostaddress = inet_addr(this->host->name().c_str());
+	if ( (long)hostaddress != (long)-1) {
+		bcopy(&hostaddress,&server.sin_addr,sizeof(hostaddress));
+	} else {
+		serverent = gethostbyname(this->host->name().c_str());
+		if (serverent == NULL){
+			throw CantConnectException(strerror(errno));
+		}
+		bcopy(serverent->h_addr,&server.sin_addr,serverent->h_length);
+	}
+	server.sin_port = htons(this->host->port());
+	server.sin_family = AF_INET;
+
+	if ( (this->socketfd = ::socket(AF_INET,SOCK_STREAM,0)) < 0) {
+		throw CantConnectException(strerror(errno));
+	}
+	if (::connect( this->socketfd,(struct sockaddr *)&server, sizeof(server)) < 0 ) {
+		throw CantConnectException(strerror(errno));
+	}
+
+}
 
 
 #endif
