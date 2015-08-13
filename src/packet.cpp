@@ -131,3 +131,16 @@ long Packet::send(int fd) throw (PacketNotReadyException){
 	delete tmp;
 	return size;
 }
+
+long Packet::send(Channel * out) throw (PacketNotReadyException){
+	long size=0;
+	if (!this->isReady()) throw PacketNotReadyException();
+	if (this->data==NULL) return 0;
+	char * tmp=new char[HEADERS_SIZE+1];
+	memset(tmp,0,HEADERS_SIZE+1);
+	sprintf(tmp,"%1hu%04u",this->code, this->length);
+	size=out->write(tmp, strlen(tmp));
+	size+=out->write(this->data,this->datasize);
+	delete tmp;
+	return size;
+}

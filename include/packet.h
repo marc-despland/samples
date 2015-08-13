@@ -3,6 +3,7 @@
 using namespace std;
 #include <exception>
 #include "buffer.h"
+#include "channel.h"
 
 
 class PacketInvalidHeaderException : public exception {
@@ -76,6 +77,10 @@ class Packet {
 		 * Send the rawdata of the packet through the given fd
 		 */
 		long send(int fd) throw (PacketNotReadyException);
+		/**
+		 * Send the rawdata of the packet through the given channel
+		 */
+		long send(Channel * out) throw (PacketNotReadyException);
 		
 		void clear();
 		

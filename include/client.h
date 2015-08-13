@@ -1,35 +1,31 @@
 #ifndef _CLIENT_H
 #define _CLIENT_H
-#include <exception>
 using namespace std;
-#include "encoder.h"
-#include <unistd.h>
-#include <termios.h>
-#include <vector>
 #include "runnable.h"
+#include "connection.h"
+#include "host.h"
+#ifdef HAVE_TCP_CONNECTION
+#include "connectiontcp.h"
+#endif
+#include "host.h"
 
-class InterruptAuthentException : public exception {};
 
 
-class Client:public Runnable, public Encoder {
+template <typename Cnx>   
+class Client: public ConnectionListener {
 	public:
-		//Client(int clin, int clout, int termin, int termout);
 		Client();
 		virtual ~Client();
-		void setClearFd(int clearin, int clearout);
-		void executecmd(Command * cmd);
-		void resizetty();
-		void quit();
-		static vector<Client *> list;
-	 	bool run();
-	protected:
-		struct termios inputopt;
-		struct sigaction * eventWindowResize;
-		struct sigaction * eventInterrupted;
-		int index;
-		void requestauthent() throw(InterruptAuthentException);
-		int clearread(char * buffer, int size);
-		
+		virtual void close();
 
+		void connect(Host * server);
+		void established(Connection * cnx);
+		void closed(Connection * cnx);
+	protected:
+	
+		Cnx * cnx;
+		Runnable * status;
+
+		virtual void execute()=0;
 };
 #endif

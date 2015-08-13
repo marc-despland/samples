@@ -31,6 +31,7 @@ class Message : public Packet {
 		virtual ~Message();
 		char * message()throw (PacketNotReadyException);
 		long sendmsg(int fd) throw (PacketNotReadyException);
+		long sendmsg(Channel * out) throw (PacketNotReadyException);
 		static bool isMessage(Packet * packet);
 		static const unsigned short CODEMESSAGE=1;
 };

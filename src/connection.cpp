@@ -55,6 +55,14 @@ Connection * Connection::accept() throw(ConnectionAcceptException) {
 }
 
 
+void Connection::connect() throw(CantConnectException) {
+	this->isconnected=true;
+	if (this->listener!=NULL) {
+		this->listener->established(this);
+	}
+}
+
+
 Host * Connection::endpoint() {
 	return this->host;
 }

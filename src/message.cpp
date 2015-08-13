@@ -60,6 +60,15 @@ long Message::sendmsg(int fd) throw (PacketNotReadyException){
 	return size;
 }
 
+
+long Message::sendmsg(Channel * out) throw (PacketNotReadyException){
+	long size=0;
+	if (!this->isReady()) throw PacketNotReadyException();
+	if (this->data==NULL) return 0;
+	size=out->write(this->data,this->datasize);
+	return size;
+}
+
 bool Message::isMessage(Packet * packet) {
 	return ((packet->getCode()==Message::CODEMESSAGE) && packet->isReady());
 }

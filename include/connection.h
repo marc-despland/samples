@@ -30,6 +30,18 @@ class ConnectionAcceptException: public exception {
 	protected:
 		string message;
 };
+class CantConnectException: public exception {
+	public:
+		CantConnectException(string message):exception() {
+			this->message=message;
+		}
+		~CantConnectException() throw (){};
+		friend std::ostream & operator<<(std::ostream &os, const CantConnectException& e) {
+			return os << e.message;
+		}
+	protected:
+		string message;
+};
 
 
 class Connection {
@@ -44,7 +56,7 @@ class Connection {
 		void registerListener(ConnectionListener * listener);
 		Host * endpoint();
 		
-		
+		virtual void connect() throw(CantConnectException);
 		virtual void listen(unsigned int size) throw(ConnectionListenException);
 		virtual Connection * accept() throw(ConnectionAcceptException);
 		virtual void shutdown();

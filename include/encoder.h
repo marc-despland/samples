@@ -5,6 +5,8 @@
 #include "command.h"
 #include "message.h"
 #include "irunnable.h"
+#include "channel.h"
+
 using namespace std;
 
 class EncoderInvalidFdException : public exception {
@@ -26,6 +28,8 @@ class Encoder {
 		void setMask(sigset_t * mask);
 		void setClearFd(int clearin, int clearout);
 		void setEncodedFd(int encodedin, int encodedout);
+		void channelClear(Channel * clear);
+		void channelEncoded(Channel * encoded);
 		void encode() throw(EncoderInvalidFdException);
 	protected:
 		void readclear() throw(EncoderStreamException);
@@ -37,10 +41,8 @@ class Encoder {
 		string name;
 		Buffer * 	bufferencoded;
 		Packet *	packet;
-		int clearin;
-		int clearout;
-		int encodedin;
-		int encodedout;
+		Channel * clear;
+		Channel * encoded;
 		sigset_t * mask;
 
 };

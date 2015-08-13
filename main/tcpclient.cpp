@@ -1,6 +1,6 @@
 #include "options.h"
 #include <iostream>
-#include "tcpclient.h"
+#include "clientencoder.h"
 #include "log.h"
 
 int main(int argc, char **argv) {
@@ -12,13 +12,12 @@ int main(int argc, char **argv) {
 		options.add('d', "debug", "Start client on debug mode", false, false);
 	} catch(ExistingOptionException &e ) {
 	}
-	TcpClient * client=new TcpClient();
-	
+	ClientEncoder<ConnectionTCP> * client=ClientEncoder<ConnectionTCP>::client();
 	try {
 		options.parse(argc, argv);
 		if (options.get('d')->isAssign()) Log::logger->setLevel(DEBUG);
-		client->setClearFd(STDIN_FILENO, STDOUT_FILENO);
-		client->start(options.get('s')->asChars(), options.get('p')->asInt());
+		client->ioChannel(new Channel(STDIN_FILENO, STDOUT_FILENO));
+		client->connect(new Host(options.get('s')->asChars(), options.get('p')->asInt()));
 		
 	} catch (OptionsStopException &e) {
 	} catch (CantConnectException &e) {
