@@ -5,7 +5,6 @@ using namespace std;
 #include <map>
 #include <unistd.h>
 #include <signal.h>
-#include "irunnable.h"
 #include <string>
 
 class ForkException : public exception {
@@ -14,7 +13,7 @@ class ForkException : public exception {
 
 class Fork {
 	public :
-		Fork(IRunnable * status, string name);
+		Fork(string name);
 		virtual ~Fork();
 		void execute() throw (ForkException);
 		void killChild();
@@ -27,8 +26,8 @@ class Fork {
 		pid_t   childpid;
 		virtual void child()=0;
 		virtual void parent()=0;
-		IRunnable * status;
 		virtual void terminated()=0;
+		virtual void terminate()=0;
 		string name;
 
 };

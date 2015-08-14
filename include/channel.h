@@ -21,12 +21,13 @@ class Channel {
 		void modeNormal();
 		void modeTerminal();
 		
-		screensize termsize();
+		screensize window();
+		void window(unsigned int w, unsigned int h);
 		
 		
-		int read(char * buffer, int size);
-		int iread(char * buffer, int size);
-		int write(char * buffer, int size);
+		int read(const char * buffer, int size);
+		int iread(const char * buffer, int size);
+		int write(const char * buffer, int size);
 		
 	protected:
 		int input;

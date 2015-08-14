@@ -3,9 +3,8 @@
 
 	
 template <typename Cnx>   
-Client<Cnx>::Client() {
+Client<Cnx>::Client():Runnable() {
 	Log::logger->log("CLIENT",DEBUG) << "Creating the client " << endl;
-	this->status=new Runnable();
 	this->cnx=NULL;
 }
 
@@ -15,8 +14,10 @@ Client<Cnx>::~Client() {
 }
 
 template <typename Cnx>   
-void Client<Cnx>::connect(Host * server) {
+void Client<Cnx>::connect(Host * server)  throw(CantConnectException){
 	this->cnx=new Cnx(server);
+	this->cnx->connect();
+	this->execute();
 
 }
 
@@ -34,7 +35,7 @@ void Client<Cnx>::closed(Connection * cnx) {
 template <typename Cnx>   
 void Client<Cnx>::close() {
 	Log::logger->log("CLIENT",DEBUG) << "Close connection" << endl;
-	this->status->stop();
+	this->stop();
 	this->cnx->shutdown();
 }
 

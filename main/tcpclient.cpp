@@ -4,7 +4,7 @@
 #include "log.h"
 
 int main(int argc, char **argv) {
-	Log::logger->setLevel(NONE);
+	Log::logger->setLevel(ERROR);
 	Options options(argv[0], "1.0.0", "Implement TcpClient class to communicate with TcpServer");
 	try {
 		options.add('s', "server", "The server IP or FQDN to connect to", true, true);

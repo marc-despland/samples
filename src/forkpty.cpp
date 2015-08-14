@@ -16,12 +16,11 @@ void ForkPty::sigchld(int sig) {
 	}
 }
 
-ForkPty::ForkPty(IRunnable * status) {
-	this->status=status;
+ForkPty::ForkPty() {
 }
 
 ForkPty::~ForkPty() {
-	sigaction(SIGCHLD,&(this->oldact), NULL);
+	//sigaction(SIGCHLD,&(this->oldact), NULL);
 }
 
  
@@ -34,15 +33,8 @@ void ForkPty::execute() throw (ForkPtyException) {
 	} else {
 		Log::logger->log("TTY", DEBUG) << "ForkPty fork done, we are the parent " << endl;
 		//Only the parent need to listen to SIGCHLD signal
-		struct sigaction eventSigChld;
-		//Create the sigaction structure to handle SIGCHLD signal
-		sigemptyset(&eventSigChld.sa_mask);
-		eventSigChld.sa_flags=0;
-		eventSigChld.sa_handler= ForkPty::sigchld;
-		//Start listening to SIGCHLD signal
-		sigaction(SIGCHLD,&eventSigChld, &(this->oldact));
+		::signal(SIGCHLD, ForkPty::sigchld);
 
-		this->status->start();
 		processlist[this->childpid]=this;
 		this->parent();
 		processlist.erase(this->childpid);

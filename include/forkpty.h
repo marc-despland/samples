@@ -13,7 +13,7 @@ class ForkPtyException : public exception {
 
 class ForkPty {
 	public :
-		ForkPty(IRunnable * status);
+		ForkPty();
 		virtual ~ForkPty();
 		void execute() throw (ForkPtyException);
 		static map<pid_t, ForkPty *>	processlist;
@@ -24,7 +24,5 @@ class ForkPty {
 		int 	ptyfd;
 		virtual void child()=0;
 		virtual void parent()=0;
-		IRunnable * status;
-
 };
 #endif

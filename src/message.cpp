@@ -42,11 +42,16 @@ Message::Message(Packet * packet) throw(InvalidMessageException):Packet(Message:
 }
 
 char * Message::message() throw (PacketNotReadyException){
+	char * tmp;
 	if (!this->isReady()) throw PacketNotReadyException();
-	if (this->data==NULL) return "";
-	char * tmp=new char[this->getLength()+1];
-	tmp[this->getLength()]=0;
-	memcpy((void *) tmp, this->data, this->datasize);
+	if (this->data==NULL) {
+		tmp=new char[1];
+		tmp[0]='\0';
+	} else {
+		tmp=new char[this->getLength()+1];
+		tmp[this->getLength()]=0;
+		memcpy((void *) tmp, this->data, this->datasize);
+	}
 	return tmp;
 
 }

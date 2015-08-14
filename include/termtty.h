@@ -9,7 +9,6 @@ using namespace std;
 #include "forkpty.h"
 #include "encoder.h"
 #include "command.h"
-#include "irunnable.h"
 #include <sys/types.h>
 
 class TermTTYForkException : public exception {
@@ -19,7 +18,7 @@ class TermTTYForkException : public exception {
 
 class TermTTY :  public ForkPty, public Encoder {
 	public:
-		TermTTY(IRunnable * status, int input, int output);
+		TermTTY(int input, int output);
 		virtual ~TermTTY();
 		bool terminal();
 		void setUser(uid_t uid, gid_t gid);
@@ -29,7 +28,6 @@ class TermTTY :  public ForkPty, public Encoder {
 		Command * quit;
 		void child();
 		void parent();
-		IRunnable * status;
 		uid_t uid;
 		gid_t gid;
 		

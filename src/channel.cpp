@@ -43,25 +43,33 @@ void Channel::modeTerminal() {
 }
 
 
-screensize Channel::termsize() {
-	struct winsize termsize;
-	ioctl(this->output,TIOCGWINSZ,&termsize);
+screensize Channel::window() {
+	struct winsize wsize;
+	ioctl(this->output,TIOCGWINSZ,&wsize);
 	
 	screensize size;
-	size.h=termsize.ws_row;
-	size.w=termsize.ws_col;
+	size.h=wsize.ws_row;
+	size.w=wsize.ws_col;
 	return size;
 }
 
-int Channel::read(char * buffer, int size) {
-	return ::read(this->input, buffer, size);
+void Channel::window(unsigned int w, unsigned int h) {
+	struct winsize wsize;//ws_row ws_col
+	wsize.ws_row=h;
+	wsize.ws_col=w;
+	ioctl(this->output,TIOCSWINSZ,&wsize);
 }
 
-int Channel::write(char * buffer, int size) {
-	return ::write(this->output, buffer, size);
+
+int Channel::read(const char * buffer, int size) {
+	return ::read(this->input, (char *) buffer, size);
 }
 
-int Channel::iread(char * buffer, int size) {
+int Channel::write(const char * buffer, int size) {
+	return ::write(this->output, (char *) buffer, size);
+}
+
+int Channel::iread(const char * buffer, int size) {
 	int nb=0;
 	fd_set readset;
 	int result;
@@ -72,7 +80,7 @@ int Channel::iread(char * buffer, int size) {
 	result = pselect(this->input+1, &readset, NULL, NULL, NULL, &emptyset);
 	if (result > 0) {
 		if (FD_ISSET(this->input, &readset)) {
-			nb=::read(this->input, buffer, size);
+			nb=::read(this->input, (char *) buffer, size);
 		}
 	}
 	return nb;

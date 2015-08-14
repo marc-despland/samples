@@ -4,7 +4,6 @@
 #include <string.h>
 #include <pwd.h>
 #include <iostream>
-#include "runnable.h"
 #include <unistd.h>
 #include <signal.h>
 #include <sys/ioctl.h>
@@ -28,7 +27,7 @@ int Authentication::pam_conversation(int num_msg, const struct pam_message **msg
 	return PAM_AUTH_ERR;
 }
 
-Authentication::Authentication():Runnable(), Encoder(this,"Authentication") {
+Authentication::Authentication():Encoder("Authentication") {
 	this->username="";
 	this->password="";
 	this->userid=-1;
@@ -127,10 +126,10 @@ void Authentication::executecmd(Command * cmd) {
 				this->failurecount++;
 				if (this->failurecount<MAXFAILURE) {
 					Command failure(Command::FAILEDAUTHENT,"");
-					failure.send(this->encodedout);
+					failure.send(this->encoded);
 				} else {
 					Command quit(Command::FAILEDAUTHENT,"");
-					quit.send(this->encodedout);
+					quit.send(this->encoded);
 					this->stop();
 				}
 			}

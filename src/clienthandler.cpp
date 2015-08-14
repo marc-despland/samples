@@ -1,7 +1,7 @@
 #include "clienthandler.h"
 #include "log.h"
 
-ClientHandler::ClientHandler(Connection * cnx):Runnable(),Fork(this,"ClientHandler") {
+ClientHandler::ClientHandler(Connection * cnx):Fork("ClientHandler") {
 	this->cnx=cnx;
 }
 
@@ -20,7 +20,6 @@ void ClientHandler::parent() {
 
 void ClientHandler::child() {
 	Log::logger->log("CLTHLD",DEBUG) << "Executing CHILD from clienthandler" << endl;
-	//this->Runnable::start();
 	this->action();
 	this->cnx->shutdown();
 	

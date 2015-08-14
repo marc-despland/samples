@@ -14,7 +14,7 @@ void Fork::sigint(int sig) {
 	pid_t pid=getpid();
 	if (Fork::processlist.count(pid)==1) {
 		Log::logger->log("FORK", DEBUG) << "Stoping status child " << endl;
-		if (Fork::processlist[pid]->status!=NULL) Fork::processlist[pid]->status->stop();
+		Fork::processlist[pid]->terminate();
 	}
 }
 
@@ -34,20 +34,17 @@ void Fork::sigchld(int sig) {
 }
 
 
-Fork::Fork(IRunnable * status, string name) {
-	this->status=status;
+Fork::Fork(string name) {
 	this->childpid=-1;
 	this->name=name;
 }
 
 Fork::~Fork() {
-	if (this->status!=NULL) this->status->stop();
 	sigaction(SIGCHLD,&(this->oldact), NULL);
 }
 
 void Fork::killChild() {
 	if (this->childpid>0) {
-		if (this->status!=NULL) this->status->stop();
 		Log::logger->log("FORK", DEBUG) << this->name<<" - " << "Send SIGINT to child : " << this->childpid << endl;
 		kill(this->childpid, SIGINT);
 	} else {
@@ -68,7 +65,6 @@ void Fork::execute() throw (ForkException) {
 		eventSigInt.sa_handler= Fork::sigint;
 		//Start listening to SIGINT signal
 		sigaction(SIGINT,&eventSigInt, NULL);
-		if (this->status!=NULL) this->status->start();
 		pid_t pid=getpid();
 		Fork::processlist[pid]=this;
 		Log::logger->log("FORK", DEBUG) << this->name<<" - " << "We will execute the child action " <<pid << endl;
@@ -85,7 +81,6 @@ void Fork::execute() throw (ForkException) {
 		//Start listening to SIGCHLD signal
 		sigaction(SIGCHLD,&eventSigChld, &(this->oldact));
 
-		if (this->status!=NULL) this->status->start();
 		Fork::processlist[this->childpid]=this;
 		Log::logger->log("FORK", DEBUG) << this->name<<" - " << "We will execute the parent action" << endl;
 		this->parent();

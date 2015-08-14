@@ -9,7 +9,7 @@ class DaemonNotInitializeException : public exception {
 	const char* what();
 };
 
-class Daemon: public Runnable, public Fork {
+class Daemon: virtual public Runnable, public Fork {
 
 	public:
 		enum Action :int {UNKNOWN=-1, START=0, STOP=1, RELOAD=2, CREATE=3, CONFIGTEST=4};

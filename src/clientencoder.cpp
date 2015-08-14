@@ -10,7 +10,7 @@ void ClientEncoder<Cnx>::ioChannel(Channel * clear) {
 }
 
 template <typename Cnx>   
-ClientEncoder<Cnx>::ClientEncoder():Client<Cnx>(),Encoder(new Runnable(),"Client") {
+ClientEncoder<Cnx>::ClientEncoder():Client<Cnx>(),Encoder("Client") {
 	/*this->mask=new sigset_t();
 	//Define the sigmask  to catch SIGWINCH with pselect
 	sigemptyset (this->mask);
@@ -30,6 +30,7 @@ ClientEncoder<Cnx> * ClientEncoder<Cnx>::client() {
 
 template <typename Cnx>   
 ClientEncoder<Cnx>::~ClientEncoder() {
+	this->clear->modeNormal();
 }
 
 template <typename Cnx>   
@@ -57,7 +58,7 @@ void ClientEncoder<Cnx>::signalHandler(int sig) {
 
 template <typename Cnx>   
 void ClientEncoder<Cnx>::resizetty() {
-	screensize size=this->clear->termsize();
+	screensize size=this->clear->window();
 	try {
 		Command cmd(Command::RESIZETTY,"%06u %06u",size.h,size.w);
 		cmd.send(this->encoded);
@@ -68,6 +69,7 @@ void ClientEncoder<Cnx>::resizetty() {
 
 template <typename Cnx>   
 void ClientEncoder<Cnx>::execute() {
+	Log::logger->log("CLIENTENCODER",DEBUG) << "Execute"<< endl;
 	this->setEncodedFd(this->cnx->socket(), this->cnx->socket());
 	try {
 		this->encode();

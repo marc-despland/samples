@@ -4,7 +4,6 @@
 #include <security/pam_appl.h>
 #include <string>
 #include <sys/types.h>
-#include "runnable.h"
 #include "encoder.h"
 
 using namespace std;
@@ -14,7 +13,7 @@ class AuthentFailureException : public exception {};
 class UserNotAuthenticateException : public exception {}; 
 
 
-class Authentication: public Runnable, Encoder {
+class Authentication: Encoder {
 	public: 
 		Authentication();
 		void authenticate(string username, string password) throw (PamException, AuthentFailureException);

@@ -12,13 +12,12 @@
 #define BUFFERSIZE	256
 
 
-Encoder::Encoder(IRunnable * status,string name){
+Encoder::Encoder(string name):Runnable(){
 	this->clear=NULL;
 	this->encoded=NULL;
 	this->name=name;
 	this->bufferencoded=NULL;
 	this->packet=NULL;
-	this->status=status;
 }
 
 void Encoder::setMask(sigset_t * mask) {
@@ -49,7 +48,7 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 
 	this->bufferencoded=new Buffer();
 	this->packet=new Packet();
-	this->status->start();
+	this->start();
 	Watcher * watcher=new Watcher();
 	if (this->clear!=NULL) watcher->watch(this->clear);
 	if (this->encoded!=NULL) watcher->watch(this->encoded);
@@ -57,7 +56,7 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 		do {
 			try {
 				vector<Channel *> ready=watcher->select();
-				for (int i=0; i<ready.size();i++) {
+				for (unsigned int i=0; i<ready.size();i++) {
 					if (ready[i]==this->clear) {
 						Log::logger->log("ENCODER", DEBUG) <<  "Read clear data" << endl;
 						this->readclear();
@@ -70,10 +69,13 @@ void Encoder::encode() throw (EncoderInvalidFdException){
 			} catch(WatcherInterruptException &e) {
 				Log::logger->log("ENCODER", DEBUG) << " Received EINTR in Encoder loop " << endl;
 			}
-		} while(this->status->running());
+		} while(this->running());
 	} catch(WatcherErrorException &e) {
 		Log::logger->log("ENCODER", ERROR) << "An error occurs, have to quit : " << e << endl;
-		this->status->stop();
+		this->stop();
+	} catch(EncoderStreamException &e) {
+		Log::logger->log("ENCODER", ERROR) << "An error occurs, have to quit : EncoderStreamException" << endl;
+		this->stop();
 	}
 	Log::logger->log("ENCODER", DEBUG) << "Encoder loop ended" << endl;	
 }

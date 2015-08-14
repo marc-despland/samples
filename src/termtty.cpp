@@ -27,27 +27,17 @@ void TermTTY::setUser(uid_t uid, gid_t gid) {
 	this->gid=gid;
 }
 
-TermTTY::TermTTY(IRunnable * status, int input, int output):ForkPty(status),Encoder(status,"Server") {
+TermTTY::TermTTY(int input, int output):ForkPty(),Encoder("Server") {
 	this->uid=-1;
 	this->gid=-1;
 	this->setEncodedFd(input, output);
-	struct termios ttystate;
+	/*struct termios ttystate;
 	this->mask=new sigset_t();
-	this->status=status;
 	//Define the sigmask  to catch SIGCHLD with pselect
 	sigemptyset (this->mask);
-	sigaddset (this->mask, SIGCHLD);
+	sigaddset (this->mask, SIGCHLD);*/
 
-
-	// Backup intial TTY mode of input fd
-	tcgetattr(input, &(this->inputopt));
-
-	// Update input mode to remove ECHO and ICANON to allow transmission of character without buffering and echo
-	tcgetattr(input, &ttystate);
-	ttystate.c_lflag &= ~ICANON;
-	ttystate.c_lflag &= ~ECHO;
-	ttystate.c_cc[VMIN] = 1;
-	tcsetattr(input, TCSANOW, &ttystate);
+	this->encoded->modeTerminal();
 	quit=NULL;
 	try {
 		quit=new Command(2,"");
@@ -58,14 +48,15 @@ TermTTY::TermTTY(IRunnable * status, int input, int output):ForkPty(status),Enco
 
 
 TermTTY::~TermTTY(){
-	tcsetattr(this->encodedin, TCSANOW, &(this->inputopt));
+	this->encoded->modeNormal();
+	//tcsetattr(this->encodedin, TCSANOW, &(this->inputopt));
 	if (quit!=NULL) delete this->quit;
 }
 
 bool TermTTY::terminal(){
 	try {
 		this->execute();
-		this->quit->send(this->encodedout);
+		this->quit->send(this->encoded);
 	} catch(ForkPtyException &e) {
 		return false;
 	}
@@ -84,7 +75,7 @@ void TermTTY::child() {
 	}
 	if (ok) {
 		Log::logger->log("TTY", DEBUG) << "Create the pty to execute shell" << endl;
-		char *argv[]={ "/bin/bash","--login", 0};
+		char * const argv[]={ "/bin/bash","--login", 0};
 		execv(argv[0], argv);
 	}
 }
@@ -95,7 +86,7 @@ void TermTTY::parent() {
 	Log::logger->log("TTY", DEBUG) << "Start to manage communication" << endl;
 	this->setClearFd(this->ptyfd,this->ptyfd);
 	Command cmd(Command::REQUESTTTYSIZE, "");
-	cmd.send(this->encodedout);
+	cmd.send(this->encoded);
 	this->encode();	
 }
 
@@ -105,12 +96,12 @@ void TermTTY::executecmd(Command * cmd) {
 	Log::logger->log("TTY", NOTICE)  << "We receive a command " << cmd->command()<< endl;
 	switch (cmd->command()) {
 		case Command::RESIZETTY: //resizeTTY
-			struct winsize termsize;//ws_row ws_col
-			cmd->parameters("%06u %06u",&(termsize.ws_row),&(termsize.ws_col));
-			ioctl(this->ptyfd,TIOCSWINSZ,&termsize);
+			unsigned int h, w;
+			cmd->parameters("%06u %06u",&(h),&(w));
+			this->clear->window(w,h);
 		break;
 		case Command::QUIT: //quit
-			this->status->stop();
+			this->stop();
 		case Command::REQUESTTTYSIZE: //request size
 			//nothing to do on server side
 		break;

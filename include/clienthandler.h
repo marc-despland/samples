@@ -2,9 +2,8 @@
 #define _CLIENTHANDLER_H
 #include "fork.h"
 #include "connection.h"
-#include "runnable.h"
 
-class ClientHandler:public Runnable,public Fork {
+class ClientHandler:public Fork {
 	public:
 		ClientHandler(Connection * cnx);
 		virtual ~ClientHandler();

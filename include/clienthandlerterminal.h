@@ -9,7 +9,11 @@
 class ClientHandlerTerminal:public ClientHandler {
 	public:	
 		ClientHandlerTerminal(Connection *cnx);
+		~ClientHandlerTerminal();
 		void action() ;
+		void terminate();
+	protected:
+		TermTTY * terminal;
 };
 
 class TerminalFactory: public ClientHandlerFactory {

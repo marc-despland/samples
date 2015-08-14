@@ -45,7 +45,7 @@ void Daemon::Signal(int sig){
 	}	
 }
 
-Daemon::Daemon(string program, string version, string description):Runnable(), Fork(this, "Daemon") {
+Daemon::Daemon(string program, string version, string description):Runnable(), Fork("Daemon") {
 	this->logfile=NULL;
 	this->lock=-1;
 	this->options=new Options(program,version, description);

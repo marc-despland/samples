@@ -12,20 +12,18 @@ using namespace std;
 
 
 template <typename Cnx>   
-class Client: public ConnectionListener {
+class Client: virtual public Runnable, public ConnectionListener {
 	public:
 		Client();
 		virtual ~Client();
 		virtual void close();
 
-		void connect(Host * server);
+		void connect(Host * server) throw(CantConnectException);
 		void established(Connection * cnx);
 		void closed(Connection * cnx);
 	protected:
 	
 		Cnx * cnx;
-		Runnable * status;
-
 		virtual void execute()=0;
 };
 #endif

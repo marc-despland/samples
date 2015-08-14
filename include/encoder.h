@@ -4,7 +4,7 @@
 #include <exception>
 #include "command.h"
 #include "message.h"
-#include "irunnable.h"
+#include "runnable.h"
 #include "channel.h"
 
 using namespace std;
@@ -16,14 +16,14 @@ class EncoderStreamException : public exception {
 	const char* what();
 };
 
-class Encoder {
+class Encoder : virtual public Runnable{
 	public:
 		/**
 		 * encoder work :
 		 *	clearin 	->	encodedout
 		 *	encodedin	->	clearout
 		 */
-		Encoder(IRunnable * status,string name);
+		Encoder(string name);
 		virtual ~Encoder();
 		void setMask(sigset_t * mask);
 		void setClearFd(int clearin, int clearout);
@@ -37,7 +37,6 @@ class Encoder {
 		virtual void executecmd(Command * cmd)=0;
 
 	protected:
-		IRunnable * status;
 		string name;
 		Buffer * 	bufferencoded;
 		Packet *	packet;

@@ -30,23 +30,17 @@ unsigned int Server<Cnx>::poolFree() {
 template <typename Cnx>   
 void Server<Cnx>::start() throw(ConnectionListenException) {
 	this->connection->listen(this->size);
-	int error=0;
 	this->Runnable::start();
 	while (this->Runnable::running()) {
 		try {
 			Cnx * client=this->connection->accept();
 			Log::logger->log("SERVER", DEBUG) << "New connection established " << client->endpoint() << endl;
 			client->registerListener(this);
-			Log::logger->log("SERVER", DEBUG) << "Listener registered " << client->endpoint() << endl;
 			ClientHandler * handler=this->factory->createClientHandler(client);
-			Log::logger->log("SERVER", DEBUG) << "Handler created " << client->endpoint() << " Socket : " << client->socket()<< "Handler " << handler<<endl;
 			this->pool[client->socket()]=handler;
-			Log::logger->log("SERVER", DEBUG) << "Handler add in pool " << client->endpoint() << endl;
 			try {
 				Log::logger->log("SERVER", DEBUG) << "Starting Handler " << client->endpoint() << endl;
-				handler->handle();
-				Log::logger->log("SERVER", DEBUG) << "Handler start " << client->endpoint() << endl;
-				
+				handler->handle();				
 			} catch (ForkException &e) {
 				Log::logger->log("SERVER", CRITICAL) << "Can't start handler : closing client connection" << endl;
 				client->shutdown();
